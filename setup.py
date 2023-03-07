@@ -18,7 +18,7 @@ LONG_DESCRIPTION = ("The apputils module provides various utilities "
 
 INSTALL_REQUIRES = ['pyqt5']
 
-setup(name='appconfigs',
+setup(name='apputils',
       version=__version__,
       description=("Utilities for building Python applications."),
       long_description=LONG_DESCRIPTION,
