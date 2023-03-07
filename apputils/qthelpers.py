@@ -163,12 +163,12 @@ def format_tooltip(text: str, tip: str, shortcuts: list[str] | str):
     keystr = keystr.replace('<', '&#60;').replace('>', '&#62;')
     ttip = ""
     if text or keystr:
-        ttip += "<p style='white-space:pre'>"
+        ttip += "<p style='white-space:pre'><b>"
         if text:
             ttip += "{}".format(text) + (" " if keystr else "")
         if keystr:
             ttip += "({})".format(keystr)
-        ttip += "</p>"
+        ttip += "</b></p>"
     if tip:
         ttip += "<p>{}</p>".format(tip or '')
     return ttip
