@@ -14,11 +14,22 @@ from qtpy.QtWidgets import QStyle, QApplication, QToolButton
 import qtawesome as qta
 
 # ---- Local imports
-from apputils import CSS4_COLORS, DEFAULT_ICON_COLOR
+from apputils.colors import CSS4_COLORS, DEFAULT_ICON_COLOR
 
 
 LOCAL_ICONS = {}
-QTA_ICONS = {}
+
+QTA_ICONS = {
+    'home': [
+        ('mdi.home',),
+        {'scale_factor': 1.3}],
+    'save': [
+        ('fa.save',),
+        {'scale_factor': 1.3}],
+    'search': [
+        ('fa5s.search',)],
+    }
+
 ICON_SIZES = {'large': (32, 32),
               'normal': (24, 24),
               'small': (20, 20)}
