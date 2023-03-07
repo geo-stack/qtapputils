@@ -41,7 +41,7 @@ def get_icon(name, color: str = None):
         try:
             args, kwargs = QTA_ICONS[name]
         except ValueError:
-            args = QTA_ICONS[name]
+            args = QTA_ICONS[name][0]
             kwargs = {}
         if len(args) > 1:
             return qta.icon(*args, **kwargs)
