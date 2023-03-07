@@ -106,54 +106,20 @@ def get_standard_iconsize(constant: 'str'):
         return style.pixelMetric(QStyle.PM_SmallIconSize)
 
 
-class QToolButtonBase(QToolButton):
-    """A basic tool button."""
-
-    def __init__(self, icon, *args, **kargs):
-        super(QToolButtonBase, self).__init__(*args, **kargs)
-        icon = get_icon(icon) if isinstance(icon, str) else icon
-        self.setIcon(icon)
-        self.setAutoRaise(True)
-        self.setFocusPolicy(Qt.NoFocus)
-
-    def setToolTip(self, ttip):
-        """
-        Qt method override to ensure tooltips are enclosed in <p></p> so
-        that they wraps correctly.
-        """
-        ttip = ttip if ttip.startswith('<p>') else '<p>' + ttip
-        ttip = ttip if ttip.endswith('</p>') else ttip + '</p>'
-        super().setToolTip(ttip)
-
-
-class QToolButtonNormal(QToolButtonBase):
-    def __init__(self, Qicon, *args, **kargs):
-        super(QToolButtonNormal, self).__init__(Qicon, *args, **kargs)
-        self.setIconSize(get_iconsize('normal'))
-
-
-class QToolButtonSmall(QToolButtonBase):
-    def __init__(self, Qicon, *args, **kargs):
-        super(QToolButtonSmall, self).__init__(Qicon, *args, **kargs)
-        self.setIconSize(get_iconsize('small'))
-
-
-class QToolButtonVRectSmall(QToolButtonBase):
-    def __init__(self, Qicon, *args, **kargs):
-        super(QToolButtonVRectSmall, self).__init__(Qicon, *args, **kargs)
-        self.setIconSize(QSize(8, 20))
-
-
 if __name__ == '__main__':
     import sys
-    from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout
+    from PyQt5.QtWidgets import QWidget, QHBoxLayout
+    from apputils.qthelpers import create_toolbutton, create_qapplication
 
-    app = QApplication(sys.argv)
+    app = create_qapplication()
 
     window = QWidget()
-    layout = QGridLayout(window)
-    layout.addWidget(QToolButtonNormal(get_icon('download')), 0, 0)
-    layout.addWidget(QToolButtonNormal(get_icon('close_all')), 0, 1)
+    layout = QHBoxLayout(window)
+    layout.addWidget(create_toolbutton(
+        window, icon=get_icon('home'), iconsize=get_iconsize('large')
+        ))
+    layout.addWidget(create_toolbutton(
+        window, icon=get_icon('search'), iconsize=get_iconsize('small')))
     window.show()
 
     sys.exit(app.exec_())
