@@ -32,9 +32,15 @@ QTA_ICONS = {
     'arrow_down': [
         ('mdi.arrow-down-thick',),
         {'scale_factor': 1.2}],
+    'console': [
+        ('mdi.console',),
+        {'scale_factor': 1.3}],
     'home': [
         ('mdi.home',),
         {'scale_factor': 1.3}],
+    'report_bug': [
+        ('mdi.bug',),
+        {'scale_factor': 1.4}],
     'save': [
         ('fa.save',),
         {'scale_factor': 1.3}],
