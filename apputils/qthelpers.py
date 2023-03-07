@@ -24,9 +24,6 @@ from qtpy.QtCore import QByteArray, Qt, QSize
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction)
 
-# ---- Local imports
-from apputils.icons import get_icon
-
 
 def qbytearray_to_hexstate(qba):
     """Convert QByteArray object to a str hexstate."""
@@ -65,7 +62,7 @@ def create_toolbar_stretcher():
 
 
 def create_toolbutton(parent, text: str = None, shortcut: str = None,
-                      icon: str | QIcon = None, tip: str = None,
+                      icon: QIcon = None, tip: str = None,
                       toggled: Callable = None, triggered: Callable = None,
                       autoraise=True, text_beside_icon: bool = False,
                       iconsize: int | QSize = None):
@@ -74,7 +71,6 @@ def create_toolbutton(parent, text: str = None, shortcut: str = None,
     if text is not None:
         button.setText(text)
     if icon is not None:
-        icon = get_icon(icon) if isinstance(icon, str) else icon
         button.setIcon(icon)
     if any((text, tip, shortcut)):
         button.setToolTip(format_tooltip(text, tip, shortcut))
@@ -100,7 +96,7 @@ def create_toolbutton(parent, text: str = None, shortcut: str = None,
 
 
 def create_action(parent, text: str = None, shortcut: str = None,
-                  icon: str | QIcon = None, tip: str = None,
+                  icon: QIcon = None, tip: str = None,
                   toggled: Callable = None, triggered: Callable = None,
                   data=None, menurole=None,
                   context=Qt.WindowShortcut, name: str = None):
@@ -113,7 +109,6 @@ def create_action(parent, text: str = None, shortcut: str = None,
         action.toggled.connect(toggled)
         action.setCheckable(True)
     if icon is not None:
-        icon = get_icon(icon) if isinstance(icon, str) else icon
         action.setIcon(icon)
     if any((text, tip, shortcut)):
         action.setToolTip(format_tooltip(text, tip, shortcut))
