@@ -11,7 +11,7 @@
 
 import setuptools
 from setuptools import setup
-from appconfigs import __version__, __project_url__
+from apputils import __version__, __project_url__
 
 LONG_DESCRIPTION = ("The apputils module provides various utilities "
                     "for building Python applications.")
