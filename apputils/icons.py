@@ -20,6 +20,18 @@ from apputils.colors import CSS4_COLORS, DEFAULT_ICON_COLOR
 LOCAL_ICONS = {}
 
 QTA_ICONS = {
+    'arrow_left': [
+        ('mdi.arrow-left-thick',),
+        {'scale_factor': 1.2}],
+    'arrow_right': [
+        ('mdi.arrow-right-thick',),
+        {'scale_factor': 1.2}],
+    'arrow_up': [
+        ('mdi.arrow-up-thick',),
+        {'scale_factor': 1.2}],
+    'arrow_down': [
+        ('mdi.arrow-down-thick',),
+        {'scale_factor': 1.2}],
     'home': [
         ('mdi.home',),
         {'scale_factor': 1.3}],
