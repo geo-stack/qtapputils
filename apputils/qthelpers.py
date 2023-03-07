@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction)
 
 # ---- Local imports
-from apputils.icons import get_icon
+from apputils.icons import get_icon, get_iconsize
 
 
 def qbytearray_to_hexstate(qba):
@@ -68,7 +68,7 @@ def create_toolbutton(parent, text: str = None, shortcut: str = None,
                       icon: str | QIcon = None, tip: str = None,
                       toggled: Callable = None, triggered: Callable = None,
                       autoraise=True, text_beside_icon: bool = False,
-                      iconsize: int | QSize = None):
+                      iconsize: int | QSize | str = None):
     """Create a QToolButton with the provided settings."""
     button = QToolButton(parent)
     if text is not None:
@@ -93,8 +93,10 @@ def create_toolbutton(parent, text: str = None, shortcut: str = None,
         else:
             button.setShortcut(shortcut)
     if iconsize is not None:
-        if not isinstance(iconsize, QSize):
-            iconsize = QSize(int(iconsize), int(iconsize))
+        if isinstance(iconsize, str):
+            iconsize = get_iconsize(iconsize)
+        elif isinstance(iconsize, int):
+            iconsize = QSize(iconsize, iconsize)
         button.setIconSize(iconsize)
     return button
 
