@@ -8,9 +8,9 @@
 # -----------------------------------------------------------------------------
 
 # ---- Third party imports
-from qtpy.QtCore import QSize, Qt
+from qtpy.QtCore import QSize
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QStyle, QApplication, QToolButton
+from qtpy.QtWidgets import QStyle, QApplication
 import qtawesome as qta
 
 # ---- Local imports
