@@ -12,7 +12,7 @@
 import csv
 import setuptools
 from setuptools import setup
-from apputils import __version__, __project_url__
+from qtapputils import __version__, __project_url__
 
 LONG_DESCRIPTION = ("The qtapputils module provides various utilities "
                     "for building Qt applications in Python.")
