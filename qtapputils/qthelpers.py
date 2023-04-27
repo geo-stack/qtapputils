@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright © AppUtils Project Contributors
+# Copyright © QtAppUtils Project Contributors
 # https://github.com/jnsebgosselin/apputils
 #
-# This file is part of AppUtils.
+# This file is part of QtAppUtils.
 # Licensed under the terms of the MIT License.
 # -----------------------------------------------------------------------------
 
