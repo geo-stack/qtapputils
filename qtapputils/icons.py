@@ -14,112 +14,112 @@ from qtpy.QtWidgets import QStyle, QApplication
 import qtawesome as qta
 
 # ---- Local imports
-from apputils.colors import CSS4_COLORS, DEFAULT_ICON_COLOR
+from qtapputils.colors import CSS4_COLORS, DEFAULT_ICON_COLOR
 
 
-LOCAL_ICONS = {}
-
-QTA_ICONS = {
-    'arrow_left': [
-        ('mdi.arrow-left-thick',),
-        {'scale_factor': 1.2}],
-    'arrow_right': [
-        ('mdi.arrow-right-thick',),
-        {'scale_factor': 1.2}],
-    'arrow_up': [
-        ('mdi.arrow-up-thick',),
-        {'scale_factor': 1.2}],
-    'arrow_down': [
-        ('mdi.arrow-down-thick',),
-        {'scale_factor': 1.2}],
-    'console': [
-        ('mdi.console',),
-        {'scale_factor': 1.3}],
-    'home': [
-        ('mdi.home',),
-        {'scale_factor': 1.3}],
-    'report_bug': [
-        ('mdi.bug',),
-        {'scale_factor': 1.4}],
-    'save': [
-        ('fa.save',),
-        {'scale_factor': 1.3}],
-    'search': [
-        ('fa5s.search',)],
+DEFAULT_ICON_SIZES = {
+    'large': (32, 32),
+    'normal': (28, 28),
+    'small': (20, 20)
     }
 
-ICON_SIZES = {'large': (32, 32),
-              'normal': (24, 24),
-              'small': (20, 20)}
 
+class IconManager:
+    """An icon manager for a Qt app."""
 
-def get_icon(name, color: str = None):
-    """Return a QIcon from a specified icon name."""
-    if name in QTA_ICONS:
-        try:
-            args, kwargs = QTA_ICONS[name]
-        except ValueError:
-            args = QTA_ICONS[name][0]
-            kwargs = {}
-        if len(args) > 1:
+    def __init__(self,
+                 qta_icons: dict = None,
+                 local_icons: dict = None,
+                 icon_sizes: dict = DEFAULT_ICON_SIZES,
+                 default_color: str = DEFAULT_ICON_COLOR):
+        self._qta_icons = qta_icons if qta_icons is not None else {}
+        self._local_icons = local_icons if local_icons is not None else {}
+        self._default_color = default_color
+        self._icon_sizes = icon_sizes
+
+    def get_icon(self, name, color: str = None):
+        """Return a QIcon from a specified icon name."""
+        if name in self._qta_icons:
+            try:
+                args, kwargs = self._qta_icons[name]
+            except ValueError:
+                args = self._qta_icons[name][0]
+                kwargs = {}
+            if len(args) > 1:
+                return qta.icon(*args, **kwargs)
+            if color is not None:
+                if color in CSS4_COLORS:
+                    kwargs['color'] = CSS4_COLORS[color]
+                else:
+                    kwargs['color'] = color
+            elif color is None and 'color' not in kwargs:
+                kwargs['color'] = DEFAULT_ICON_COLOR
             return qta.icon(*args, **kwargs)
-        if color is not None:
-            if color in CSS4_COLORS:
-                kwargs['color'] = CSS4_COLORS[color]
-            else:
-                kwargs['color'] = color
-        elif color is None and 'color' not in kwargs:
-            kwargs['color'] = DEFAULT_ICON_COLOR
-        return qta.icon(*args, **kwargs)
-    elif name in LOCAL_ICONS:
-        return QIcon(LOCAL_ICONS[name])
-    else:
-        return QIcon()
+        elif name in self._local_icons:
+            return QIcon(self._local_icons[name])
+        else:
+            return QIcon()
 
+    def get_iconsize(self, size: str):
+        return QSize(*self._icon_sizes[size])
 
-def get_iconsize(size: str):
-    return QSize(*ICON_SIZES[size])
+    @staticmethod
+    def get_standard_icon(constant):
+        """
+        Return a QIcon of a standard pixmap.
 
+        See the link below for a list of valid constants:
+        https://srinikom.github.io/pyside-docs/PySide/QtGui/QStyle.html
+        """
+        constant = getattr(QStyle, constant)
+        style = QApplication.instance().style()
+        return style.standardIcon(constant)
 
-def get_standard_icon(constant):
-    """
-    Return a QIcon of a standard pixmap.
+    def get_standard_iconsize(constant: 'str'):
+        """
+        Return the standard size of various component of the gui.
 
-    See the link below for a list of valid constants:
-    https://srinikom.github.io/pyside-docs/PySide/QtGui/QStyle.html
-    """
-    constant = getattr(QStyle, constant)
-    style = QApplication.instance().style()
-    return style.standardIcon(constant)
-
-
-def get_standard_iconsize(constant: 'str'):
-    """
-    Return the standard size of various component of the gui.
-
-    https://srinikom.github.io/pyside-docs/PySide/QtGui/QStyle
-    """
-    style = QApplication.instance().style()
-    if constant == 'messagebox':
-        return style.pixelMetric(QStyle.PM_MessageBoxIconSize)
-    elif constant == 'small':
-        return style.pixelMetric(QStyle.PM_SmallIconSize)
+        https://srinikom.github.io/pyside-docs/PySide/QtGui/QStyle
+        """
+        style = QApplication.instance().style()
+        if constant == 'messagebox':
+            return style.pixelMetric(QStyle.PM_MessageBoxIconSize)
+        elif constant == 'small':
+            return style.pixelMetric(QStyle.PM_SmallIconSize)
 
 
 if __name__ == '__main__':
     import sys
     from PyQt5.QtWidgets import QWidget, QHBoxLayout
-    from apputils.qthelpers import create_toolbutton, create_qapplication
+    from qtapputils.qthelpers import create_toolbutton, create_qapplication
+    from qtapputils.colors import RED
 
     app = create_qapplication()
 
+    ICOM = IconManager(
+        qta_icons={
+            'home': [
+                ('mdi.home',),
+                {'scale_factor': 1.3}],
+            'save': [
+                ('mdi.content-save',),
+                {'color': RED, 'scale_factor': 1.2}],
+            }
+        )
+
     window = QWidget()
+
     layout = QHBoxLayout(window)
     layout.addWidget(create_toolbutton(
-        window, icon=get_icon('home'), iconsize=get_iconsize('large')
+        window,
+        icon=ICOM.get_icon('home'),
+        iconsize=ICOM.get_iconsize('large')
         ))
     layout.addWidget(create_toolbutton(
-        window, icon=get_icon('search'), iconsize=get_iconsize('small')))
+        window,
+        icon=ICOM.get_icon('save'),
+        iconsize=ICOM.get_iconsize('small')))
+
     window.show()
 
     sys.exit(app.exec_())
