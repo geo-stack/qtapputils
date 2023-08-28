@@ -109,17 +109,27 @@ if __name__ == '__main__':
 
     window = QWidget()
 
+    icon1 = ICOM.get_icon('home')
+    icon2 = ICOM.get_icon('save')
+
+    icon1.pixmap(48).save(
+        'D:/Projets/appconfigs/appconfigs/tests/home_icon.png', 'PNG')
+    icon2.pixmap(48).save(
+        'D:/Projets/appconfigs/appconfigs/tests/save_icon.png', 'PNG')
+
     layout = QHBoxLayout(window)
     layout.addWidget(create_toolbutton(
         window,
-        icon=ICOM.get_icon('home'),
+        icon=icon1,
         iconsize=ICOM.get_iconsize('large')
         ))
     layout.addWidget(create_toolbutton(
         window,
-        icon=ICOM.get_icon('save'),
+        icon=icon2,
         iconsize=ICOM.get_iconsize('small')))
 
     window.show()
+
+    # pixmap.save(buffer, "PNG")
 
     sys.exit(app.exec_())
