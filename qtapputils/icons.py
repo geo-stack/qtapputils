@@ -45,9 +45,14 @@ class IconManager:
             except ValueError:
                 args = self._qta_icons[name][0]
                 kwargs = {}
+
             if len(args) > 1:
+                # For icon made of multiple icons, you need to setup
+                # to color in the 'qta_icons' dictionary directly.
                 return qta.icon(*args, **kwargs)
             if color is not None:
+                # The color passed as argument always supersede the color
+                # define in the 'qta_icons' dictionary.
                 if color in CSS4_COLORS:
                     kwargs['color'] = CSS4_COLORS[color]
                 else:
