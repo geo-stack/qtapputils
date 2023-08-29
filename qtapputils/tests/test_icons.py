@@ -10,23 +10,22 @@
 
 """Tests for the IconManager"""
 
-# Third party imports
-import pytest
-from qtpy.QtGui import QIcon
 
-# Local imports
-from qtapputils.colors import RED
+# ---- Standard imports
+import os.path as osp
+
+# ---- Third party imports
+import pytest
+from qtpy.QtGui import QIcon, QPixmap, QImage
+
+# ---- Local imports
+from qtapputils.colors import RED, YELLOW
 from qtapputils.icons import IconManager
 
 
 # =============================================================================
 # ---- Pytest fixtures
 # =============================================================================
-# @pytest.fixture
-# def configdir(tmpdir):
-    # return osp.join(str(tmpdir), 'UserConfigTests')
-
-
 QTA_ICONS = {
     'home': [
         ('mdi.home',),
@@ -40,23 +39,30 @@ QTA_ICONS = {
 # =============================================================================
 # ---- Tests
 # =============================================================================
-def test_get_qta_icons(qtbot):
+def test_get_qta_icons(qtbot, tmp_path):
     """
     Test that getting qtawesome icons is working as expected.
     """
     IM = IconManager(QTA_ICONS)
 
     icon = IM.get_icon('home')
+    expected_home_img = osp.join(osp.dirname(__file__), 'home_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
 
-    # # Check each entry of the dict and try to get the respective icon
-    # for name in FA_ICONS.keys():
-    #     icon = get_icon(name)
-    #     assert isinstance(icon, QIcon), name
-    #     assert not icon.isNull(), name
-    # for name in LOCAL_ICONS.keys():
-    #     icon = get_icon(name)
-    #     assert isinstance(icon, QIcon), name
-    #     assert not icon.isNull(), name
+    icon = IM.get_icon('save')
+    expected_home_img = osp.join(
+        osp.dirname(__file__), 'red_save_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
+
+    icon = IM.get_icon('save', color=YELLOW)
+    expected_home_img = osp.join(
+        osp.dirname(__file__), 'yellow_save_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
+
+    icon = IM.get_icon('save', color='#FF007F')
+    expected_home_img = osp.join(
+        osp.dirname(__file__), 'pink_save_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
 
 
 if __name__ == "__main__":
