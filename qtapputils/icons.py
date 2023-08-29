@@ -50,6 +50,7 @@ class IconManager:
                 # For icon made of multiple icons, you need to setup
                 # to color in the 'qta_icons' dictionary directly.
                 return qta.icon(*args, **kwargs)
+
             if color is not None:
                 # The color passed as argument always supersede the color
                 # define in the 'qta_icons' dictionary.
@@ -97,12 +98,15 @@ if __name__ == '__main__':
     import sys
     from PyQt5.QtWidgets import QWidget, QHBoxLayout
     from qtapputils.qthelpers import create_toolbutton, create_qapplication
-    from qtapputils.colors import RED
+    from qtapputils.colors import RED, YELLOW, GREEN
 
     app = create_qapplication()
 
     ICOM = IconManager(
         qta_icons={
+            'alert': [
+                ('mdi.alert-outline',),
+                {'color': GREEN}],
             'home': [
                 ('mdi.home',),
                 {'scale_factor': 1.3}],
@@ -116,11 +120,20 @@ if __name__ == '__main__':
 
     icon1 = ICOM.get_icon('home')
     icon2 = ICOM.get_icon('save')
+    icon3 = ICOM.get_icon('save', color=YELLOW)
+    icon4 = ICOM.get_icon('save', color='#FF007F')
+    icon5 = ICOM.get_icon('alert')
 
     icon1.pixmap(48).save(
-        'D:/Projets/appconfigs/appconfigs/tests/home_icon.png', 'PNG')
+        'D:/Projets/qtapputils/qtapputils/tests/home_icon.tiff', 'TIFF')
     icon2.pixmap(48).save(
-        'D:/Projets/appconfigs/appconfigs/tests/save_icon.png', 'PNG')
+        'D:/Projets/qtapputils/qtapputils/tests/red_save_icon.tiff', 'TIFF')
+    icon3.pixmap(48).save(
+        'D:/Projets/qtapputils/qtapputils/tests/yellow_save_icon.tiff', 'TIFF')
+    icon4.pixmap(48).save(
+        'D:/Projets/qtapputils/qtapputils/tests/pink_save_icon.tiff', 'TIFF')
+    icon5.pixmap(48).save(
+        'D:/Projets/qtapputils/qtapputils/tests/alert_icon.tiff', 'TIFF')
 
     layout = QHBoxLayout(window)
     layout.addWidget(create_toolbutton(
@@ -132,6 +145,10 @@ if __name__ == '__main__':
         window,
         icon=icon2,
         iconsize=ICOM.get_iconsize('small')))
+    layout.addWidget(create_toolbutton(
+        window,
+        icon=icon3,
+        iconsize=ICOM.get_iconsize('normal')))
 
     window.show()
 
