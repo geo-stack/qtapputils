@@ -26,6 +26,10 @@ from qtapputils.icons import IconManager
 # =============================================================================
 # ---- Pytest fixtures
 # =============================================================================
+LOCAL_ICONS = {
+    'alert': osp.join(osp.dirname(__file__), 'alert_icon.tiff')
+    }
+
 QTA_ICONS = {
     'home': [
         ('mdi.home',),
@@ -62,6 +66,17 @@ def test_get_qta_icons(qtbot, tmp_path):
     icon = IM.get_icon('save', color='#FF007F')
     expected_home_img = osp.join(
         osp.dirname(__file__), 'pink_save_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
+
+
+def test_get_local_icons(qtbot, tmp_path):
+    """
+    Test that getting local icons is working as expected.
+    """
+    IM = IconManager(QTA_ICONS, LOCAL_ICONS)
+
+    icon = IM.get_icon('alert')
+    expected_home_img = osp.join(osp.dirname(__file__), 'alert_icon.tiff')
     assert QImage(expected_home_img) == icon.pixmap(48).toImage()
 
 
