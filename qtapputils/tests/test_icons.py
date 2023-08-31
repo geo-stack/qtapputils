@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright © QtAppUtils Project Contributors
-# https://github.com/jnsebgosselin/apputils
+# https://github.com/jnsebgosselin/qtapputils
 #
 # This file is part of QtAppUtils.
 # Licensed under the terms of the MIT License.
@@ -16,7 +16,7 @@ import os.path as osp
 
 # ---- Third party imports
 import pytest
-from qtpy.QtGui import QIcon, QPixmap, QImage
+from qtpy.QtGui import QImage
 
 # ---- Local imports
 from qtapputils.colors import RED, YELLOW
