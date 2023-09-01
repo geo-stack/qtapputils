@@ -42,18 +42,11 @@ steps:
     CODECOV_TOKEN: $(SECRET_CODECOV_TOKEN)
   displayName: 'Run codecov'
 
-# Setup to build taken from:
-# https://medium.com/raa-labs/creating-a-pipeline-in-azure-devops-to-build-and-publish-python-packages-artifacts-ea2f99410e6c
-
 - script: |
     python -m build --sdist --wheel
   displayName: 'Artifact creation'
-
-- task: CopyFiles@2
+    
+- task: PublishPipelineArtifact@0
   inputs:
-    targetFolder: $(Build.ArtifactStagingDirectory)
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'dist'
+    artifactName: 'dist'
+    targetPath: '$(Build.SourcesDirectory)/dist'
