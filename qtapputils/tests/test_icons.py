@@ -16,7 +16,7 @@ import os.path as osp
 
 # ---- Third party imports
 import pytest
-from qtpy.QtGui import QIcon, QPixmap, QImage
+from qtpy.QtGui import QImage
 
 # ---- Local imports
 from qtapputils.colors import RED, YELLOW
