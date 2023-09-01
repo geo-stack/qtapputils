@@ -1,2 +1,4 @@
+qtpy
 pyqt5
 matplotlib
+qtawesome
