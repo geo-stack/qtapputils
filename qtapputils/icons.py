@@ -70,7 +70,7 @@ class IconManager:
         return QSize(*self._icon_sizes[size])
 
     @staticmethod
-    def get_standard_icon(constant):
+    def get_standard_icon(constant: str) -> QIcon:
         """
         Return a QIcon of a standard pixmap.
 
@@ -81,7 +81,8 @@ class IconManager:
         style = QApplication.instance().style()
         return style.standardIcon(constant)
 
-    def get_standard_iconsize(constant: 'str'):
+    @staticmethod
+    def get_standard_iconsize(constant: 'str') -> int:
         """
         Return the standard size of various component of the gui.
 

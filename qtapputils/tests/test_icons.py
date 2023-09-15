@@ -16,7 +16,7 @@ import os.path as osp
 
 # ---- Third party imports
 import pytest
-from qtpy.QtGui import QImage
+from qtpy.QtGui import QImage, QIcon
 
 # ---- Local imports
 from qtapputils.colors import RED, YELLOW
@@ -78,6 +78,23 @@ def test_get_local_icons(qtbot, tmp_path):
     icon = IM.get_icon('alert')
     expected_home_img = osp.join(osp.dirname(__file__), 'alert_icon.tiff')
     assert QImage(expected_home_img) == icon.pixmap(48).toImage()
+
+
+def test_get_standard_icon(qtbot):
+    """
+    Test that getting standard icon is working as expected.
+    """
+    IM = IconManager()
+    assert isinstance(IM.get_standard_icon('SP_MessageBoxCritical'), QIcon)
+
+
+def test_get_standard_iconsize(qtbot):
+    """
+    Test that getting standard icon size is working as expected.
+    """
+    IM = IconManager()
+    for constant in ['messagebox', 'small']:
+        assert isinstance(IM.get_standard_iconsize(constant), int)
 
 
 if __name__ == "__main__":
