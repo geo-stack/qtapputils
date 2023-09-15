@@ -10,7 +10,7 @@ permissions:
 jobs:
   pypi-publish:
     name: Publish package to PyPI
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     environment:
       name: release
       url: https://pypi.org/p/qtapputils
