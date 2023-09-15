@@ -9,7 +9,6 @@
 
 """Installation script """
 
-import csv
 import setuptools
 from setuptools import setup
 from qtapputils import __version__, __project_url__
@@ -17,9 +16,13 @@ from qtapputils import __version__, __project_url__
 LONG_DESCRIPTION = ("The qtapputils module provides various utilities "
                     "for building Qt applications in Python.")
 
-with open('requirements.txt', 'r') as csvfile:
-    INSTALL_REQUIRES = list(csv.reader(csvfile))
-INSTALL_REQUIRES = [item for sublist in INSTALL_REQUIRES for item in sublist]
+
+INSTALL_REQUIRES = [
+    'qtpy',
+    'pyqt5',
+    'matplotlib',
+    'qtawesome'
+    ]
 
 
 setup(name='qtapputils',
