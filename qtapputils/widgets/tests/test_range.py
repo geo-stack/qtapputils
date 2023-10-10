@@ -67,21 +67,25 @@ def test_range_spinbox(range_spinbox, qtbot):
     Test that the RangeSpinBox is working as expected.
     """
     # Test entering a value above the maximum.
+    range_spinbox.clear()
     qtbot.keyClicks(range_spinbox, '120')
     qtbot.keyClick(range_spinbox, Qt.Key_Enter)
     assert range_spinbox.value() == 101
 
     # Test entering a value below the minimum.
+    range_spinbox.clear()
     qtbot.keyClicks(range_spinbox, '-12')
     qtbot.keyClick(range_spinbox, Qt.Key_Enter)
     assert range_spinbox.value() == 3
 
     # Test entering a valid value.
+    range_spinbox.clear()
     qtbot.keyClicks(range_spinbox, '45.3')
     qtbot.keyClick(range_spinbox, Qt.Key_Enter)
     assert range_spinbox.value() == 45.3
 
     # Test entering an invalid value.
+    range_spinbox.clear()
     qtbot.keyClicks(range_spinbox, '-')
     qtbot.keyClick(range_spinbox, Qt.Key_Enter)
     assert range_spinbox.value() == 45.3
