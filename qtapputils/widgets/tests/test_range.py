@@ -84,11 +84,17 @@ def test_range_spinbox(range_spinbox, qtbot):
     qtbot.keyClick(range_spinbox, Qt.Key_Enter)
     assert range_spinbox.value() == 45.3
 
-    # Test entering an invalid value.
+    # Test entering an intermediate value.
     range_spinbox.clear()
     qtbot.keyClicks(range_spinbox, '-')
     qtbot.keyClick(range_spinbox, Qt.Key_Enter)
     assert range_spinbox.value() == 45.3
+
+    # Test entering invalid values.
+    range_spinbox.clear()
+    qtbot.keyClicks(range_spinbox, '23..a-45')
+    qtbot.keyClick(range_spinbox, Qt.Key_Enter)
+    assert range_spinbox.value() == 23.45
 
 
 def test_range_widget(range_widget, qtbot):
