@@ -105,5 +105,23 @@ def test_get_standard_iconsize(qtbot):
         assert isinstance(IM.get_standard_iconsize(constant), int)
 
 
+def test_default_icon_color():
+    """
+    Test that setting a custom default icon color works as expected.
+
+    Regression test for jnsebgosselin/qtapputils#5.
+    """
+    # We remove the color defined in 'QTA_ICONS' for the 'save' icon.
+    qta_icons = deepcopy(QTA_ICONS)
+    del qta_icons['save'][1]['color']
+
+    # We pass a custom 'default_color' to the 'IconManager'.
+    IM = IconManager(qta_icons, default_color='#FF007F')
+
+    icon = IM.get_icon('save')
+    expected_home_img = osp.join(osp.dirname(__file__), 'pink_save_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
+
+
 if __name__ == "__main__":
     pytest.main(['-x', __file__, '-v', '-rw'])
