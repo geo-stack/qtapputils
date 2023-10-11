@@ -7,6 +7,9 @@
 # Licensed under the terms of the MIT License.
 # -----------------------------------------------------------------------------
 
+# ---- Standard imports
+from copy import deepcopy
+
 # ---- Third party imports
 from qtpy.QtCore import QSize
 from qtpy.QtGui import QIcon
@@ -41,9 +44,9 @@ class IconManager:
         """Return a QIcon from a specified icon name."""
         if name in self._qta_icons:
             try:
-                args, kwargs = self._qta_icons[name]
+                args, kwargs = deepcopy(self._qta_icons[name])
             except ValueError:
-                args = self._qta_icons[name][0]
+                args = deepcopy(self._qta_icons[name][0])
                 kwargs = {}
 
             if len(args) > 1:
