@@ -17,12 +17,16 @@ if TYPE_CHECKING:
 # ---- Standard imports
 import sys
 import platform
+from math import pi
 
 # ---- Third party imports
 from qtpy.QtGui import QKeySequence
 from qtpy.QtCore import QByteArray, Qt, QSize
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction)
+
+# --- Local imports
+from qtapputils.widgets import WaitingSpinner
 
 
 def qbytearray_to_hexstate(qba):
@@ -127,6 +131,47 @@ def create_action(parent, text: str = None, shortcut: str = None,
         action.setObjectName(name)
 
     return action
+
+
+def create_waitspinner(
+        size: int = 32, n: int = 11, parent: QWidget = None
+        ) -> WaitingSpinner:
+    """
+    Create a wait spinner.
+
+    Parameters
+    ----------
+    size : int, optional
+        The size of the spinner in integer point precision (one point is equal
+        to 1/72 of an inch). The default is 32.
+    n : int, optional
+        The number of dots used to draw the spinner. The default is 11.
+    parent : QWidget, optional
+        The parent widget of the spinner. The default is None.
+
+    Returns
+    -------
+    spinner : WaitingSpinner
+        The waitspinner created with the specified parameters
+    """
+    dot_padding = 1
+
+    # To calculate the size of the dots, we need to solve the following
+    # system of two equations in two variables.
+    # (1) middle_circumference = pi * (size - dot_size)
+    # (2) middle_circumference = n * (dot_size + dot_padding)
+    dot_size = (pi * size - n * dot_padding) / (n + pi)
+    inner_radius = (size - 2 * dot_size) / 2
+
+    spinner = WaitingSpinner(parent, centerOnParent=False)
+    spinner.setTrailSizeDecreasing(True)
+    spinner.setNumberOfLines(n)
+    spinner.setLineLength(dot_size)
+    spinner.setLineWidth(dot_size)
+    spinner.setInnerRadius(inner_radius)
+    spinner.setColor(Qt.black)
+
+    return spinner
 
 
 def format_statustip(text: str, shortcuts: list[str] | str):
