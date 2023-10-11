@@ -23,7 +23,8 @@ from math import pi
 from qtpy.QtGui import QKeySequence
 from qtpy.QtCore import QByteArray, Qt, QSize
 from qtpy.QtWidgets import (
-    QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction)
+    QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction,
+    QToolBar)
 
 # --- Local imports
 from qtapputils.widgets import WaitingSpinner
@@ -37,6 +38,24 @@ def qbytearray_to_hexstate(qba):
 def hexstate_to_qbytearray(hexstate):
     """Convert a str hexstate to a QByteArray object."""
     return QByteArray().fromHex(str(hexstate).encode('utf-8'))
+
+
+def create_mainwindow_toolbar(
+        title: str, iconsize: int = None, areas: int = Qt.TopToolBarArea,
+        movable: bool = False, floatable: bool = False,
+        orientation: int = Qt.Horizontal):
+    """Create and return a toolbar with title and object_name."""
+    toolbar = QToolBar(title)
+    toolbar.setOrientation(orientation)
+    toolbar.setObjectName(title.lower().replace(' ', '_'))
+    toolbar.setFloatable(floatable)
+    toolbar.setMovable(movable)
+    toolbar.setAllowedAreas(areas)
+
+    if iconsize is not None:
+        toolbar.setIconSize(QSize(iconsize, iconsize))
+
+    return toolbar
 
 
 def create_qapplication(ft_ptsize: int = None, ft_family: str = None):
