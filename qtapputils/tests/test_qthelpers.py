@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright © SARDES Project Contributors
-# https://github.com/cgq-qgc/sardes
+# Copyright © QtAppUtils Project Contributors
+# https://github.com/jnsebgosselin/apputils
 #
-# This file is part of SARDES.
-# Licensed under the terms of the GNU General Public License.
+# This file is part of QtAppUtils.
+# Licensed under the terms of the MIT License.
 # -----------------------------------------------------------------------------
 
-"""
-Tests for the qthelpers functions.
-"""
+"""Tests for the qthelpers functions."""
 
 # ---- Standard imports
 from math import pi
-import os
 from itertools import product
 
 # ---- Third party imports
