@@ -12,6 +12,7 @@
 
 
 # ---- Standard imports
+from copy import deepcopy
 import os.path as osp
 
 # ---- Third party imports
@@ -66,6 +67,13 @@ def test_get_qta_icons(qtbot, tmp_path):
     icon = IM.get_icon('save', color='#FF007F')
     expected_home_img = osp.join(
         osp.dirname(__file__), 'pink_save_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
+
+    # Test that the qta_icons dictionary is not modified by
+    # previous call to "get_icon". See jnsebgosselin/qtapputils#6.
+    icon = IM.get_icon('save')
+    expected_home_img = osp.join(
+        osp.dirname(__file__), 'red_save_icon.tiff')
     assert QImage(expected_home_img) == icon.pixmap(48).toImage()
 
 
