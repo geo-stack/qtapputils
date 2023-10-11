@@ -240,3 +240,17 @@ def get_shortcuts_native_text(shortcuts: list[str] | str):
 
     return ', '.join([QKeySequence(sc).toString(QKeySequence.NativeText)
                       for sc in shortcuts])
+
+
+def get_default_contents_margins() -> list[int, int, int, int]:
+    """
+    Return the default [left, top, right, bottom] contents margins
+    of a QLayout.
+    """
+    style = QApplication.instance().style()
+    return [
+        style.pixelMetric(style.PM_LayoutLeftMargin),
+        style.pixelMetric(style.PM_LayoutTopMargin),
+        style.pixelMetric(style.PM_LayoutRightMargin),
+        style.pixelMetric(style.PM_LayoutBottomMargin),
+        ]
