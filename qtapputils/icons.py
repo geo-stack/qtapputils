@@ -62,7 +62,7 @@ class IconManager:
                 else:
                     kwargs['color'] = color
             elif color is None and 'color' not in kwargs:
-                kwargs['color'] = DEFAULT_ICON_COLOR
+                kwargs['color'] = self._default_color
             return qta.icon(*args, **kwargs)
         elif name in self._local_icons:
             return QIcon(self._local_icons[name])
