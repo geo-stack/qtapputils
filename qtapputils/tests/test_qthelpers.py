@@ -12,14 +12,26 @@ Tests for the qthelpers functions.
 """
 
 # ---- Standard imports
+from math import pi
 import os
 from itertools import product
 
 # ---- Third party imports
+from qtpy.QtCore import Qt
 import pytest
 
 # ---- Local imports
-from qtapputils.qthelpers import format_tooltip
+from qtapputils.qthelpers import format_tooltip, create_waitspinner
+
+
+# =============================================================================
+# Fixtures
+# =============================================================================
+@pytest.fixture
+def spinner(qtbot):
+    spinner = create_waitspinner(size=48, n=24)
+    qtbot.addWidget(spinner)
+    return spinner
 
 
 # =============================================================================
@@ -58,5 +70,42 @@ def test_format_tooltip():
         assert tooltip == expected_ttip, assertion_error
 
 
+def test_create_waitspinner(spinner, qtbot):
+    """Test that creating a waitspinner is working as expected."""
+    n = 24
+    size = 48
+    dot_padding = 1
+
+    dot_size = (pi * size - n * dot_padding) / (n + pi)
+    inner_radius = (size - 2 * dot_size) / 2
+
+    assert spinner._numberOfLines == 24
+    assert spinner.lineLength() == dot_size
+    assert spinner.lineWidth() == dot_size
+    assert spinner.innerRadius() == inner_radius
+    assert spinner.isTrailSizeDecreasing() is True
+    assert spinner.color() == Qt.black
+
+    assert spinner.isVisible() is False
+    assert spinner.isSpinning() is False
+    assert spinner._currentCounter == 0
+
+    # Start the spinner.
+    spinner.start()
+    qtbot.wait(100)
+
+    assert spinner.isVisible() is True
+    assert spinner.isSpinning() is True
+    assert spinner._currentCounter > 0
+
+    # Stop the spinner.
+    spinner.stop()
+    qtbot.wait(100)
+
+    assert spinner.isVisible() is False
+    assert spinner.isSpinning() is False
+    assert spinner._currentCounter == 0
+
+
 if __name__ == "__main__":
-    pytest.main(['-x', __file__, '-v', '-rw', '-s'])
+    pytest.main(['-x', __file__, '-v', '-rw'])
