@@ -12,6 +12,7 @@
 
 
 # ---- Standard imports
+from copy import deepcopy
 import os.path as osp
 
 # ---- Third party imports
@@ -68,6 +69,13 @@ def test_get_qta_icons(qtbot, tmp_path):
         osp.dirname(__file__), 'pink_save_icon.tiff')
     assert QImage(expected_home_img) == icon.pixmap(48).toImage()
 
+    # Test that the qta_icons dictionary is not modified by
+    # previous call to "get_icon". See jnsebgosselin/qtapputils#6.
+    icon = IM.get_icon('save')
+    expected_home_img = osp.join(
+        osp.dirname(__file__), 'red_save_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
+
 
 def test_get_local_icons(qtbot, tmp_path):
     """
@@ -95,6 +103,24 @@ def test_get_standard_iconsize(qtbot):
     IM = IconManager()
     for constant in ['messagebox', 'small']:
         assert isinstance(IM.get_standard_iconsize(constant), int)
+
+
+def test_default_icon_color():
+    """
+    Test that setting a custom default icon color works as expected.
+
+    Regression test for jnsebgosselin/qtapputils#5.
+    """
+    # We remove the color defined in 'QTA_ICONS' for the 'save' icon.
+    qta_icons = deepcopy(QTA_ICONS)
+    del qta_icons['save'][1]['color']
+
+    # We pass a custom 'default_color' to the 'IconManager'.
+    IM = IconManager(qta_icons, default_color='#FF007F')
+
+    icon = IM.get_icon('save')
+    expected_home_img = osp.join(osp.dirname(__file__), 'pink_save_icon.tiff')
+    assert QImage(expected_home_img) == icon.pixmap(48).toImage()
 
 
 if __name__ == "__main__":
