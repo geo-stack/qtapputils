@@ -6,4 +6,3 @@
 # This file is part of QtAppUtils.
 # Licensed under the terms of the MIT License.
 # -----------------------------------------------------------------------------
-from .range import RangeSpinBox, RangeWidget
