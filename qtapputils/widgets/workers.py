@@ -145,7 +145,8 @@ class TaskManagerBase(QObject):
         """Cleanup task associated with the specified UUID."""
         del self._task_callbacks[task_uuid4]
         del self._task_data[task_uuid4]
-        self._running_tasks.remove(task_uuid4)
+        if task_uuid4 in self._running_tasks:
+            self._running_tasks.remove(task_uuid4)
 
     def _add_task(self, task: Callable, callback, *args, **kargs):
         """Add a new task at the end of the stack of queued tasks."""
