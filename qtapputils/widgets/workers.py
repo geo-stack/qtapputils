@@ -165,7 +165,7 @@ class TaskManagerBase(QObject):
 
     def _run_pending_tasks(self):
         """Execute all pending tasks."""
-        if len(self._running_tasks) == 0:
+        if len(self._running_tasks) == 0 and len(self._pending_tasks) > 0:
             print('Executing {} pending tasks...'.format(
                 len(self._pending_tasks)))
             # Even though the worker has executed all its tasks,
