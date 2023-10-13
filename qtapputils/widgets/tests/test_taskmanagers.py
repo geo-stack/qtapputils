@@ -16,7 +16,6 @@ from time import sleep
 
 # ---- Third party imports
 import pytest
-import pandas as pd
 
 # ---- Local imports
 from qtapputils.widgets import WorkerBase, TaskManagerBase
@@ -26,19 +25,19 @@ from qtapputils.widgets import WorkerBase, TaskManagerBase
 # ---- Fixtures
 # =============================================================================
 @pytest.fixture
-def DATAF():
-    return pd.DataFrame([1, 2, 3, 4], columns=['values'])
+def DATA():
+    return [1, 2, 3, 4]
 
 
 @pytest.fixture
-def worker(DATAF):
+def worker(DATA):
     def _get_something():
         sleep(0.5)
-        return DATAF.copy(),
+        return DATA.copy(),
 
     def _set_something(index, value):
         sleep(0.5)
-        DATAF.loc[index, 'values'] = value
+        DATA[index] = value
 
     worker = WorkerBase()
     worker._get_something = _get_something
@@ -65,8 +64,8 @@ def test_run_tasks(task_manager, qtbot):
     """
     returned_values = []
 
-    def task_callback(dataf):
-        returned_values.append(dataf)
+    def task_callback(data):
+        returned_values.append(data)
 
     # Add some tasks to the manager.
     task_manager.add_task('get_something', task_callback)
@@ -90,9 +89,9 @@ def test_run_tasks(task_manager, qtbot):
 
     assert len(task_manager._running_tasks) == 0
     assert len(returned_values) == 3
-    assert returned_values[0]['values'].values.tolist() == [1, 2, 3, 4]
-    assert returned_values[1]['values'].values.tolist() == [1, 2, 3, 4]
-    assert returned_values[2]['values'].values.tolist() == [1, 2, -19.5, 4]
+    assert returned_values[0] == [1, 2, 3, 4]
+    assert returned_values[1] == [1, 2, 3, 4]
+    assert returned_values[2] == [1, 2, -19.5, 4]
 
 
 def test_run_tasks_if_busy(task_manager, qtbot):
@@ -102,8 +101,8 @@ def test_run_tasks_if_busy(task_manager, qtbot):
     """
     returned_values = []
 
-    def task_callback(dataf):
-        returned_values.append(dataf)
+    def task_callback(data):
+        returned_values.append(data)
 
     # Add some tasks to the manager.
     task_manager.add_task('get_something', task_callback)
@@ -146,9 +145,9 @@ def test_run_tasks_if_busy(task_manager, qtbot):
     assert len(task_manager._running_tasks) == 0
 
     assert len(returned_values) == 3
-    assert returned_values[0]['values'].values.tolist() == [1, 2, 3, 4]
-    assert returned_values[1]['values'].values.tolist() == [1, 2, 3, 4]
-    assert returned_values[2]['values'].values.tolist() == [1, 0.512, -19.5, 4]
+    assert returned_values[0] == [1, 2, 3, 4]
+    assert returned_values[1] == [1, 2, 3, 4]
+    assert returned_values[2] == [1, 0.512, -19.5, 4]
 
 
 if __name__ == "__main__":
