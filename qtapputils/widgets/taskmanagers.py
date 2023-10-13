@@ -56,8 +56,10 @@ class TaskManagerBase(QObject):
     """
     sig_run_tasks_finished = Signal()
 
-    def __init__(self):
+    def __init__(self, verbose: bool = False):
         super().__init__()
+        self.verbose = verbose
+
         self._worker = None
 
         self._task_callbacks = {}
@@ -138,7 +140,8 @@ class TaskManagerBase(QObject):
             if len(self._pending_tasks) > 0:
                 self._run_pending_tasks()
             else:
-                print('All pending tasks were executed.')
+                if self.verbose:
+                    print('All pending tasks were executed.')
                 self.sig_run_tasks_finished.emit()
 
     def _cleanup_task(self, task_uuid4: uuid.UUID):
@@ -166,8 +169,9 @@ class TaskManagerBase(QObject):
     def _run_pending_tasks(self):
         """Execute all pending tasks."""
         if len(self._running_tasks) == 0 and len(self._pending_tasks) > 0:
-            print('Executing {} pending tasks...'.format(
-                len(self._pending_tasks)))
+            if self.verbose:
+                print('Executing {} pending tasks...'.format(
+                    len(self._pending_tasks)))
             # Even though the worker has executed all its tasks,
             # we may still need to wait a little for it to stop properly.
             i = 0
