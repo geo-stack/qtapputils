@@ -190,7 +190,7 @@ class TaskManagerBase(QObject):
             self._thread.start()
 
 
-class LIFOTaskManager(QObject):
+class LIFOTaskManager(TaskManagerBase):
     """
     A last-in, first out (LIFO) task manager manager, where there's always
     at most one task in the queue, and if a new task is added, it overrides
@@ -204,5 +204,7 @@ class LIFOTaskManager(QObject):
         """
         for task_uuid4 in self._pending_tasks:
             self._cleanup_task(task_uuid4)
+        self._queued_tasks = []
+        self._pending_tasks = []
         super()._add_task(task, callback, *args, **kargs)
         self._run_tasks()
