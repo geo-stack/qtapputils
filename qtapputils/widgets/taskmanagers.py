@@ -210,4 +210,3 @@ class LIFOTaskManager(TaskManagerBase):
         self._queued_tasks = []
         self._pending_tasks = []
         super()._add_task(task, callback, *args, **kargs)
-        self._run_tasks()
