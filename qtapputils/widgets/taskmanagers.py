@@ -54,6 +54,7 @@ class TaskManagerBase(QObject):
     """
     A basic FIFO (First-In, First-Out) task manager.
     """
+    sig_run_tasks_started = Signal()
     sig_run_tasks_finished = Signal()
 
     def __init__(self, verbose: bool = False):
@@ -164,6 +165,8 @@ class TaskManagerBase(QObject):
         """
         self._pending_tasks.extend(self._queued_tasks)
         self._queued_tasks = []
+        if len(self._running_tasks) == 0:
+            self.sig_run_tasks_started.emit()
         self._run_pending_tasks()
 
     def _run_pending_tasks(self):
