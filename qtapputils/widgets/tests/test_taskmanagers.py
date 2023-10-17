@@ -16,6 +16,7 @@ from time import sleep
 
 # ---- Third party imports
 import pytest
+from qtpy.QtTest import QSignalSpy
 
 # ---- Local imports
 from qtapputils.widgets import WorkerBase, TaskManagerBase
@@ -67,6 +68,10 @@ def test_run_tasks(task_manager, qtbot):
     def task_callback(data):
         returned_values.append(data)
 
+    # Add spy to the signals.
+    start_signal_spy = QSignalSpy(task_manager.sig_run_tasks_started)
+    end_signal_spy = QSignalSpy(task_manager.sig_run_tasks_finished)
+
     # Add some tasks to the manager.
     task_manager.add_task('get_something', task_callback)
     task_manager.add_task('get_something', task_callback)
@@ -93,6 +98,10 @@ def test_run_tasks(task_manager, qtbot):
     assert returned_values[1] == [1, 2, 3, 4]
     assert returned_values[2] == [1, 2, -19.5, 4]
 
+    # We assert that each signal were called only once.
+    assert len(start_signal_spy) == 1
+    assert len(end_signal_spy) == 1
+
 
 def test_run_tasks_if_busy(task_manager, qtbot):
     """
@@ -103,6 +112,10 @@ def test_run_tasks_if_busy(task_manager, qtbot):
 
     def task_callback(data):
         returned_values.append(data)
+
+    # Add spy to the signals.
+    start_signal_spy = QSignalSpy(task_manager.sig_run_tasks_started)
+    end_signal_spy = QSignalSpy(task_manager.sig_run_tasks_finished)
 
     # Add some tasks to the manager.
     task_manager.add_task('get_something', task_callback)
@@ -148,6 +161,10 @@ def test_run_tasks_if_busy(task_manager, qtbot):
     assert returned_values[0] == [1, 2, 3, 4]
     assert returned_values[1] == [1, 2, 3, 4]
     assert returned_values[2] == [1, 0.512, -19.5, 4]
+
+    # We assert that each signal were called only once.
+    assert len(start_signal_spy) == 1
+    assert len(end_signal_spy) == 1
 
 
 if __name__ == "__main__":
