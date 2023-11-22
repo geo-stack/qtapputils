@@ -27,6 +27,31 @@ DEFAULT_ICON_SIZES = {
     }
 
 
+def get_standard_icon(constant: str) -> QIcon:
+    """
+    Return a QIcon of a standard pixmap.
+
+    See the link below for a list of valid constants:
+    https://srinikom.github.io/pyside-docs/PySide/QtGui/QStyle.html
+    """
+    constant = getattr(QStyle, constant)
+    style = QApplication.instance().style()
+    return style.standardIcon(constant)
+
+
+def get_standard_iconsize(constant: 'str') -> int:
+    """
+    Return the standard size of various component of the gui.
+
+    https://srinikom.github.io/pyside-docs/PySide/QtGui/QStyle
+    """
+    style = QApplication.instance().style()
+    if constant == 'messagebox':
+        return style.pixelMetric(QStyle.PM_MessageBoxIconSize)
+    elif constant == 'small':
+        return style.pixelMetric(QStyle.PM_SmallIconSize)
+
+
 class IconManager:
     """An icon manager for a Qt app."""
 
@@ -74,28 +99,13 @@ class IconManager:
 
     @staticmethod
     def get_standard_icon(constant: str) -> QIcon:
-        """
-        Return a QIcon of a standard pixmap.
-
-        See the link below for a list of valid constants:
-        https://srinikom.github.io/pyside-docs/PySide/QtGui/QStyle.html
-        """
-        constant = getattr(QStyle, constant)
-        style = QApplication.instance().style()
-        return style.standardIcon(constant)
+        """A convenience method for the 'get_standard_icon' function."""
+        return get_standard_icon(constant)
 
     @staticmethod
     def get_standard_iconsize(constant: 'str') -> int:
-        """
-        Return the standard size of various component of the gui.
-
-        https://srinikom.github.io/pyside-docs/PySide/QtGui/QStyle
-        """
-        style = QApplication.instance().style()
-        if constant == 'messagebox':
-            return style.pixelMetric(QStyle.PM_MessageBoxIconSize)
-        elif constant == 'small':
-            return style.pixelMetric(QStyle.PM_SmallIconSize)
+        """"A convenience method for the 'get_standard_iconsize' function."""
+        return get_standard_iconsize(constant)
 
 
 if __name__ == '__main__':

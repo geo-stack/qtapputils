@@ -9,3 +9,4 @@
 from .range import RangeSpinBox, RangeWidget
 from .waitingspinner import WaitingSpinner
 from .taskmanagers import WorkerBase, TaskManagerBase, LIFOTaskManager
+from .path import PathBoxWidget, CheckboxPathBoxWidget
