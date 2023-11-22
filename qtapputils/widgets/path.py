@@ -8,8 +8,6 @@
 # -----------------------------------------------------------------------------
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
-if TYPE_CHECKING:
-    from qtpy.QtWidgets import QWidget
 
 
 # ---- Standard library imports
@@ -19,7 +17,7 @@ import os.path as osp
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (
     QCheckBox, QFrame, QLineEdit, QLabel, QFileDialog, QPushButton,
-    QGridLayout)
+    QGridLayout, QWidget)
 
 
 class PathBoxWidget(QFrame):
@@ -115,12 +113,12 @@ class CheckboxPathBoxWidget(QFrame):
     a checkbox to enable or disable the widget and a group label.
     """
 
-    def __init__(self, parent=None, label='', path='',
-                 is_enabled=True, workdir=''):
+    def __init__(self, parent: QWidget = None, label: str = '',
+                 is_enabled: bool = True, **kwargs):
         super().__init__(parent)
         self.label = label
 
-        self.pathbox_widget = PathBoxWidget(parent=self, workdir=workdir)
+        self.pathbox_widget = PathBoxWidget(parent, **kwargs)
 
         self.checkbox = QCheckBox()
         self.checkbox.stateChanged.connect(
@@ -130,7 +128,7 @@ class CheckboxPathBoxWidget(QFrame):
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.checkbox, 0, 0)
-        layout.addWidget(QLabel(label + ' :' if label else label), 0, 1)
+        layout.addWidget(QLabel(label if label else label), 0, 1)
         layout.addWidget(self.pathbox_widget, 1, 1)
 
     def is_enabled(self):
@@ -162,3 +160,32 @@ class CheckboxPathBoxWidget(QFrame):
 
     def set_directory(self, directory: str):
         return self.pathbox_widget.set_workdir(directory)
+
+
+if __name__ == '__main__':
+    import sys
+    from qtapputils.qthelpers import create_qapplication
+    qapp = create_qapplication()
+
+    widget = QWidget()
+    layout = QGridLayout(widget)
+
+    pathbox = PathBoxWidget(
+        parent=widget,
+        path="D:/Desktop/test.txt",
+        path_type='getOpenFileName')
+    layout.addWidget(pathbox, 0, 0)
+
+    layout.setRowMinimumHeight(1, 10)
+
+    checkpathbox = CheckboxPathBoxWidget(
+        parent=widget,
+        path="D:/Desktop/test.txt",
+        label='Use this configuration file:',
+        path_type='getOpenFileName')
+    layout.addWidget(checkpathbox, 2, 0)
+
+    widget.setMinimumWidth(350)
+    widget.show()
+
+    sys.exit(qapp.exec_())
