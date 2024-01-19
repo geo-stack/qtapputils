@@ -20,7 +20,7 @@ from qtpy.QtWidgets import QMessageBox, QFileDialog, QWidget
 
 class SaveFileManager(QObject):
     def __init__(self, namefilters: dict, onsave: Callable,
-                 defaultdir: str = None, parent: QWidget = None):
+                 parent: QWidget = None):
         """
         A manager to save files.
 
