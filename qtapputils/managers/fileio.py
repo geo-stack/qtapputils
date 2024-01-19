@@ -28,8 +28,8 @@ class SaveFileManager(QObject):
         ----------
         namefilters : dict
             A dictionary containing the file filters to use in the
-            'Save As' file dialog. Here is an example of a properly
-            formater namefilters dictionary:
+            'Save As' file dialog. Here is an example of a correctly
+            formated namefilters dictionary:
 
                 namefilters = {
                     '.pdf': 'Portable Document Format (*.pdf)',
@@ -41,7 +41,7 @@ class SaveFileManager(QObject):
             Note that the first entry in the dictionary will be used as the
             default name filter to use in the 'Save As' dialog.
         onsave : Callable
-            A callable that is used to save to a file.
+            The callable that is used to save the file.
         parent: QWidget, optional
             The parent widget to use for the 'Save As' file dialog.
         """
@@ -57,7 +57,7 @@ class SaveFileManager(QObject):
         Parameters
         ----------
         filename : str
-            The abosulte path of the file to save.
+            The abosulte path where to save the file.
 
         Returns
         -------
@@ -84,7 +84,7 @@ class SaveFileManager(QObject):
         Parameters
         ----------
         filename : dict
-            The default or suggested absolute path of the file to save.
+            The default or suggested absolute path where to save the file.
 
         Returns
         -------
