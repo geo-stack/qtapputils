@@ -45,6 +45,7 @@ class SaveFileManager(QObject):
         parent: QWidget, optional
             The parent widget to use for the 'Save As' file dialog.
         """
+        super().__init__()
         self.parent = parent
         self.namefilters = namefilters
         self.onsave = onsave
