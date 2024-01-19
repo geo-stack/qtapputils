@@ -65,7 +65,7 @@ class SaveFileManager(QObject):
             'None' if the saving operation was cancelled or was unsuccessfull.
         """
         try:
-            self.onsave(filename)
+            self.onsave(filename, *args, **kwargs)
         except PermissionError:
             QMessageBox.warning(
                 self.parent,
@@ -73,10 +73,10 @@ class SaveFileManager(QObject):
                 ("The save file operation cannot be completed because the "
                  "file is in use by another application or user."),
                 QMessageBox.Ok)
-            filename = self.save_file_as(filename)
+            filename = self.save_file_as(filename, *args, **kwargs)
         return filename
 
-    def save_file_as(self, filename: str | None, *args, **kwargs) -> str:
+    def save_file_as(self, filename: str, *args, **kwargs) -> str:
         """
         Save in a new file.
 
@@ -108,4 +108,4 @@ class SaveFileManager(QObject):
             if not filename.endswith(ext):
                 filename += ext
 
-            return self.save_file(filename, **kwargs)
+            return self.save_file(filename, *args, **kwargs)
