@@ -7,3 +7,4 @@
 # Licensed under the terms of the MIT License.
 # -----------------------------------------------------------------------------
 from .taskmanagers import WorkerBase, TaskManagerBase, LIFOTaskManager
+from .fileio import SaveFileManager
