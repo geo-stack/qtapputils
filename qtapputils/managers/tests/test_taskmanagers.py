@@ -19,7 +19,7 @@ import pytest
 from qtpy.QtTest import QSignalSpy
 
 # ---- Local imports
-from qtapputils.widgets import WorkerBase, TaskManagerBase, LIFOTaskManager
+from qtapputils.managers import WorkerBase, TaskManagerBase, LIFOTaskManager
 
 
 # =============================================================================
