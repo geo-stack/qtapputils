@@ -14,3 +14,9 @@ A compendium of utilities to make building Qt applications in Python easier.
 ```commandlines
 pip install qtapputils
 ```
+
+You can update `QtAppUtils` by running:
+
+```commandlines
+pip install qtapputils -U
+```
