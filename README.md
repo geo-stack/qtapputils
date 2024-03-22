@@ -20,3 +20,12 @@ You can update `QtAppUtils` by running:
 ```commandlines
 pip install qtapputils -U
 ```
+
+This will only install or update `qtapputils` without installing of updating
+the dependencies.
+
+To install `qtapputils` along with its dependencies, you can run instead:
+
+```commandlines
+pip install qtapputils[with-deps]
+```
