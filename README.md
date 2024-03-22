@@ -24,7 +24,10 @@ pip install qtapputils -U
 This will only install or update `qtapputils` without installing of updating
 the dependencies.
 
-To install `qtapputils` along with its dependencies, you can run instead:
+The above commands will only install or update `QtAppUtils` without
+its dependencies.
+
+To install `QtAppUtils` along with its dependencies, you can use:
 
 ```commandlines
 pip install qtapputils[with-deps]
