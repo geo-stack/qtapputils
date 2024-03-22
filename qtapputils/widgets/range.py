@@ -8,9 +8,11 @@
 # -----------------------------------------------------------------------------
 
 # ---- Third party imports
-from qtpy.QtCore import Signal, QObject
+from qtpy.QtCore import Signal, QObject, QLocale
 from qtpy.QtGui import QValidator
 from qtpy.QtWidgets import QDoubleSpinBox, QWidget
+
+LOCALE = QLocale()
 
 
 class RangeSpinBox(QDoubleSpinBox):
@@ -53,24 +55,23 @@ class RangeSpinBox(QDoubleSpinBox):
         """Override Qt method."""
         if value in ('-', '', '.', ','):
             return super().fixup(value)
-        elif float(value) > self.maximum():
-            return '{value:0.{decimals}f}'.format(
-                value=self.maximum(), decimals=self.decimals())
+
+        num, success = LOCALE.toDouble(value)
+        if float(num) > self.maximum():
+            return LOCALE.toString(self.maximum(), 'f', self.decimals())
         else:
-            return '{value:0.{decimals}f}'.format(
-                value=self.minimum(), decimals=self.decimals())
+            return LOCALE.toString(self.minimum(), 'f', self.decimals())
 
     def validate(self, value, pos):
         """Override Qt method."""
         if value in ('-', '', '.', ','):
             return QValidator.Intermediate, value, pos
 
-        try:
-            float(value)
-        except(ValueError):
+        num, success = LOCALE.toDouble(value)
+        if success is False:
             return QValidator.Invalid, value, pos
 
-        if float(value) > self.maximum() or float(value) < self.minimum():
+        if float(num) > self.maximum() or float(num) < self.minimum():
             return QValidator.Intermediate, value, pos
         else:
             return QValidator.Acceptable, value, pos
