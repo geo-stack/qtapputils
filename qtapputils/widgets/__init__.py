@@ -9,3 +9,4 @@
 from .range import RangeSpinBox, RangeWidget
 from .waitingspinner import WaitingSpinner
 from .path import PathBoxWidget, CheckboxPathBoxWidget
+from .splash import SplashScreen
