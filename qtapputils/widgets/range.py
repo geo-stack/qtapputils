@@ -38,7 +38,7 @@ class DoubleSpinBox(QDoubleSpinBox):
                 return tostr.replace(LOCALE.groupSeparator(), '')
             else:
                 return (
-                    tostr[:-index].replace(LOCALE.groupSeparator(), '') +
+                    tostr[:-index-1].replace(LOCALE.groupSeparator(), '') +
                     tostr[-1-index:]
                     )
 
