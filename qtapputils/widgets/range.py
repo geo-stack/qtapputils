@@ -8,7 +8,7 @@
 # -----------------------------------------------------------------------------
 
 # ---- Third party imports
-from qtpy.QtCore import Signal, QObject, QLocale
+from qtpy.QtCore import Signal, QObject, QLocale, Qt
 from qtpy.QtGui import QValidator
 from qtpy.QtWidgets import QDoubleSpinBox, QWidget
 
@@ -20,6 +20,24 @@ class DoubleSpinBox(QDoubleSpinBox):
     A standard qt double spinbox that implements a workaround for
     the bug described at https://bugreports.qt.io/browse/QTBUG-77939.
     """
+
+    def keyReleaseEvent(self, event):
+        """
+        Override qt base method to consume key release events so that they are
+        not propagated to the parent.
+        """
+        super().keyReleaseEvent(event)
+        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+            event.accept()
+
+    def keyPressEvent(self, event):
+        """
+        Override qt base method to consume key press events so that they are
+        not propagated to the parent.
+        """
+        super().keyPressEvent(event)
+        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+            event.accept()
 
     def textFromValue(self, value: float):
         """
