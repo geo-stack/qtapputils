@@ -8,7 +8,7 @@
 # -----------------------------------------------------------------------------
 
 # ---- Third party imports
-from qtpy.QtCore import Signal, QObject, QLocale, Qt
+from qtpy.QtCore import Signal, QObject, QLocale
 from qtpy.QtGui import QValidator
 from qtpy.QtWidgets import QDoubleSpinBox, QWidget
 
