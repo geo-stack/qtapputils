@@ -21,13 +21,21 @@ class DoubleSpinBox(QDoubleSpinBox):
     the bug described at https://bugreports.qt.io/browse/QTBUG-77939.
     """
 
+    def __init__(self, parent: QWidget = None,
+                 consume_enter_events: bool = True):
+        super().__init__(parent)
+        # Whether to consume key press and key release events.
+        # See jnsebgosselin/qtapputils#18
+        self.consume_enter_events = consume_enter_events
+
     def keyReleaseEvent(self, event):
         """
         Override qt base method to consume key release events so that they are
         not propagated to the parent.
         """
         super().keyReleaseEvent(event)
-        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if (event.key() in (Qt.Key_Enter, Qt.Key_Return) and
+                self.consume_enter_events):
             event.accept()
 
     def keyPressEvent(self, event):
@@ -36,7 +44,8 @@ class DoubleSpinBox(QDoubleSpinBox):
         not propagated to the parent.
         """
         super().keyPressEvent(event)
-        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if (event.key() in (Qt.Key_Enter, Qt.Key_Return) and
+                self.consume_enter_events):
             event.accept()
 
     def textFromValue(self, value: float):
