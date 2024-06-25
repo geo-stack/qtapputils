@@ -15,7 +15,35 @@ from qtpy.QtWidgets import QDoubleSpinBox, QWidget
 LOCALE = QLocale()
 
 
-class RangeSpinBox(QDoubleSpinBox):
+class DoubleSpinBox(QDoubleSpinBox):
+    """
+    A standard qt double spinbox that implements a workaround for
+    the bug described at https://bugreports.qt.io/browse/QTBUG-77939.
+    """
+
+    def textFromValue(self, value: float):
+        """
+        Override qt base method to work around the bug described at
+        https://bugreports.qt.io/browse/QTBUG-77939 when a ',' is
+        used as decimal separator.
+        """
+        from qtpy.QtCore import QLocale
+        LOCALE = QLocale()
+        if self.isGroupSeparatorShown():
+            return LOCALE.toString(value, 'f', self.decimals())
+        else:
+            tostr = LOCALE.toString(value, 'f', self.decimals())
+            index = self.decimals()
+            if index == 0:
+                return tostr.replace(LOCALE.groupSeparator(), '')
+            else:
+                return (
+                    tostr[:-index-1].replace(LOCALE.groupSeparator(), '') +
+                    tostr[-1-index:]
+                    )
+
+
+class RangeSpinBox(DoubleSpinBox):
     """
     A spinbox that allow to enter values that are lower or higher than the
     minimum and maximum value of the spinbox.
@@ -58,9 +86,9 @@ class RangeSpinBox(QDoubleSpinBox):
 
         num, success = LOCALE.toDouble(value)
         if float(num) > self.maximum():
-            return LOCALE.toString(self.maximum(), 'f', self.decimals())
+            return self.textFromValue(self.maximum())
         else:
-            return LOCALE.toString(self.minimum(), 'f', self.decimals())
+            return self.textFromValue(self.minimum())
 
     def validate(self, value, pos):
         """Override Qt method."""
