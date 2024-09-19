@@ -115,9 +115,9 @@ class ProcessStatusBar(QWidget):
         self.set_icon(
             'failed', qta.icon('mdi.alert-circle-outline', color=RED))
         self.set_icon(
-            'success', qta.icon('mdi.update', color=GREEN))
+            'success', qta.icon('mdi.check-circle-outline', color=GREEN))
         self.set_icon(
-            'update', qta.icon('mdi.check-circle-outline', color=BLUE))
+            'update', qta.icon('mdi.update', color=BLUE))
 
         # Setup layout.
         layout = QGridLayout(self)
@@ -229,3 +229,38 @@ class ProcessStatusBar(QWidget):
         self._status = self.HIDDEN
         super().hide()
         self._spinner.stop()
+
+
+if __name__ == '__main__':
+    import sys
+    from qtpy.QtWidgets import QWidget
+    from qtapputils.qthelpers import create_qapplication
+
+    app = create_qapplication()
+
+    widget = QWidget()
+    layout = QGridLayout(widget)
+
+    pbar = ProcessStatusBar(hsize_policy='expanding')
+    pbar.show('This is a demo...')
+
+    pbar2 = ProcessStatusBar(hsize_policy='expanding')
+    pbar2.show()
+    pbar2.show_sucess_icon('Success icon demo.')
+
+    pbar3 = ProcessStatusBar(hsize_policy='expanding')
+    pbar3.show()
+    pbar3.show_fail_icon('Fail icon demo.')
+
+    pbar4 = ProcessStatusBar(hsize_policy='expanding')
+    pbar4.show()
+    pbar4.show_update_icon('Update icon demo.')
+
+    layout.addWidget(pbar)
+    layout.addWidget(pbar2)
+    layout.addWidget(pbar3)
+    layout.addWidget(pbar4)
+
+    widget.show()
+
+    sys.exit(app.exec_())
