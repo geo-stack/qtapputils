@@ -81,23 +81,13 @@ class ProcessStatusBar(QWidget):
             'bottom': Qt.AlignBottom
             }
 
-        class LabelBrowser(QTextBrowser):
-            def text(self):
-                return self.toPlainText()
-
-            def minimumSizeHint(self):
-                return QLabel().minimumSizeHint()
-
-            def sizeHint(self):
-                return QLabel().sizeHint()
-
         text_valign = VALIGN_DICT[text_valign]
-        self._label = LabelBrowser()
+        self._label = QLabel()
         if orientation == Qt.Horizontal:
             self._label.setAlignment(Qt.AlignLeft | text_valign)
         else:
             self._label.setAlignment(Qt.AlignCenter | text_valign)
-        self._label.setLineWrapMode(LabelBrowser.WidgetWidth)
+        self._label.setWordWrap(True)
         self._label.setTextInteractionFlags(
             Qt.TextSelectableByMouse | Qt.TextBrowserInteraction)
         self._label.setOpenExternalLinks(True)
