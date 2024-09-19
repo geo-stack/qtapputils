@@ -127,16 +127,15 @@ class ProcessStatusBar(QWidget):
         for icon in self._icons.values():
             layout.addWidget(icon, 1, 1, alignment)
         if orientation == Qt.Horizontal:
-            layout.setColumnMinimumWidth(2, 5)
-            layout.addWidget(self._label, 1, 3)
+            layout.addWidget(self._label, 1, 2)
             if vsize_policy == 'minimum':
                 layout.setRowStretch(0, 100)
                 layout.setRowStretch(3, 100)
             elif vsize_policy == 'expanding':
                 layout.setRowStretch(1, 100)
             # We ignore 'hsize_policy' when orientation is horizontal.
-            layout.setColumnStretch(3, 100)
             layout.setSpacing(spacing or 0)
+            layout.setColumnStretch(2, 100)
         else:
             layout.addWidget(self._label, 2, 1)
             if vsize_policy == 'minimum':
