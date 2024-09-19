@@ -33,10 +33,11 @@ class ProcessStatusBar(QWidget):
     NEED_UPDATE = 4
 
     def __init__(self, parent=None, iconsize=24, ndots=11,
-                 orientation=Qt.Horizontal, spacing=None,
+                 orientation=Qt.Horizontal, spacing: int = 5,
                  contents_margin: list = None,
                  hsize_policy='minimum', vsize_policy='minimum',
-                 text_valign='center', icon_valign='center'):
+                 text_valign='center', icon_valign='center',
+                 label_pad: int = 5):
         """
         A process status bar including an icon and a label.
 
@@ -52,8 +53,7 @@ class ProcessStatusBar(QWidget):
             Orientation of the progress status bar. The default is
             Qt.Horizontal.
         spacing : in, optional
-            Spacing between the icon and the label. Default to 0 if
-            orientation is horizontal and to 5 if vertical.
+            Spacing between the icon and the label. The default is 5.
         contents_margin : list[int], optional
             A list of four integers corresponding to the left, top, right, and
             bottom contents margin. The default is 0 on all sides.
@@ -134,8 +134,8 @@ class ProcessStatusBar(QWidget):
             elif vsize_policy == 'expanding':
                 layout.setRowStretch(1, 100)
             # We ignore 'hsize_policy' when orientation is horizontal.
-            layout.setSpacing(spacing or 0)
             layout.setColumnStretch(2, 100)
+            layout.setSpacing(spacing)
         else:
             layout.addWidget(self._label, 2, 1)
             if vsize_policy == 'minimum':
@@ -152,7 +152,7 @@ class ProcessStatusBar(QWidget):
                 layout.setColumnStretch(2, 100)
             elif hsize_policy == 'expanding':
                 layout.setColumnStretch(1, 100)
-            layout.setSpacing(spacing or 5)
+            layout.setSpacing(spacing)
 
     def show_icon(self, icon_name):
         """Show icon named 'icon_name' and hide all other icons."""
