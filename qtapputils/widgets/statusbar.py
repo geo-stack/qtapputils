@@ -59,7 +59,8 @@ class ProcessStatusBar(QWidget):
             bottom contents margin. The default is 0 on all sides.
         hsize_policy : str, optional
             An attribute describing horizontal resizing policy. Valid
-            values are 'minimum' or 'expanding'.
+            values are 'minimum' or 'expanding'. This option is ignored
+            when the orientation of the progress bar is horizontal.
         vsize_policy : str, optional
             An attribute describing vertical resizing policy. Valid
             values are 'minimum', 'expanding', or 'minimum_expanding'.
@@ -81,6 +82,8 @@ class ProcessStatusBar(QWidget):
             }
 
         class LabelBrowser(QTextBrowser):
+            def text(self):
+                return self.toPlainText()
 
             def minimumSizeHint(self):
                 return QLabel().minimumSizeHint()
@@ -141,10 +144,8 @@ class ProcessStatusBar(QWidget):
                 layout.setRowStretch(3, 100)
             elif vsize_policy == 'expanding':
                 layout.setRowStretch(1, 100)
-            if hsize_policy == 'minimum':
-                layout.setColumnStretch(4, 100)
-            elif hsize_policy == 'expanding':
-                layout.setColumnStretch(3, 100)
+            # We ignore 'hsize_policy' when orientation is horizontal.
+            layout.setColumnStretch(3, 100)
             layout.setSpacing(spacing or 0)
         else:
             layout.addWidget(self._label, 2, 1)
@@ -241,18 +242,18 @@ if __name__ == '__main__':
     widget = QWidget()
     layout = QGridLayout(widget)
 
-    pbar = ProcessStatusBar(hsize_policy='expanding')
+    pbar = ProcessStatusBar()
     pbar.show('This is a demo...')
 
-    pbar2 = ProcessStatusBar(hsize_policy='expanding')
+    pbar2 = ProcessStatusBar()
     pbar2.show()
     pbar2.show_sucess_icon('Success icon demo.')
 
-    pbar3 = ProcessStatusBar(hsize_policy='expanding')
+    pbar3 = ProcessStatusBar()
     pbar3.show()
     pbar3.show_fail_icon('Fail icon demo.')
 
-    pbar4 = ProcessStatusBar(hsize_policy='expanding')
+    pbar4 = ProcessStatusBar()
     pbar4.show()
     pbar4.show_update_icon('Update icon demo.')
 
