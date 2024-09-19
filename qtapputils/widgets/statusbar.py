@@ -124,8 +124,8 @@ class ProcessStatusBar(QWidget):
         else:
             alignment = Qt.AlignCenter | icon_valign
         layout.addWidget(self._spinner, 1, 1, alignment)
-        for widget in self._icons.values():
-            layout.addWidget(widget, 1, 1, alignment)
+        for icon in self._icons.values():
+            layout.addWidget(icon, 1, 1, alignment)
         if orientation == Qt.Horizontal:
             layout.setColumnMinimumWidth(2, 5)
             layout.addWidget(self._label, 1, 3)
