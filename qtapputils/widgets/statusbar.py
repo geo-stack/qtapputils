@@ -86,7 +86,7 @@ class ProcessStatusBar(QWidget):
         if orientation == Qt.Horizontal:
             self._label.setAlignment(Qt.AlignLeft | text_valign)
         else:
-            self._label.setAlignment(Qt.AlignCenter | text_valign)
+            self._label.setAlignment(Qt.AlignHCenter | text_valign)
         self._label.setWordWrap(True)
         self._label.setTextInteractionFlags(
             Qt.TextSelectableByMouse | Qt.TextBrowserInteraction)
@@ -126,6 +126,7 @@ class ProcessStatusBar(QWidget):
         layout.addWidget(self._spinner, 1, 1, alignment)
         for icon in self._icons.values():
             layout.addWidget(icon, 1, 1, alignment)
+
         if orientation == Qt.Horizontal:
             layout.addWidget(self._label, 1, 2)
             if vsize_policy == 'minimum':
