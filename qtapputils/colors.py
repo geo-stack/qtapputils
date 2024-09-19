@@ -13,6 +13,7 @@ GREEN = '#00aa00'
 RED = '#CC0000'
 YELLOW = '#ffa500'
 YELLOWLIGHT = '#fcf7b6'
+BLUE = '#004C99'
 
 # Copied from matplotlib.colors.CSS4_COLORS.
 CSS4_COLORS = {
