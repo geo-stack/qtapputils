@@ -10,9 +10,8 @@
 # ---- Third party imports
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QGridLayout, QLabel, QWidget, QTextBrowser
+from qtpy.QtWidgets import QGridLayout, QLabel, QWidget
 import qtawesome as qta
-
 
 # ---- Local imports
 from qtapputils.qthelpers import create_waitspinner
@@ -33,7 +32,7 @@ class ProcessStatusBar(QWidget):
     NEED_UPDATE = 4
 
     def __init__(self, parent=None, iconsize=24, ndots=11,
-                 orientation=Qt.Horizontal, spacing=None,
+                 orientation=Qt.Horizontal, spacing: int = 5,
                  contents_margin: list = None,
                  hsize_policy='minimum', vsize_policy='minimum',
                  text_valign='center', icon_valign='center'):
@@ -52,8 +51,7 @@ class ProcessStatusBar(QWidget):
             Orientation of the progress status bar. The default is
             Qt.Horizontal.
         spacing : in, optional
-            Spacing between the icon and the label. Default to 0 if
-            orientation is horizontal and to 5 if vertical.
+            Spacing between the icon and the label. The default is 5.
         contents_margin : list[int], optional
             A list of four integers corresponding to the left, top, right, and
             bottom contents margin. The default is 0 on all sides.
@@ -81,23 +79,13 @@ class ProcessStatusBar(QWidget):
             'bottom': Qt.AlignBottom
             }
 
-        class LabelBrowser(QTextBrowser):
-            def text(self):
-                return self.toPlainText()
-
-            def minimumSizeHint(self):
-                return QLabel().minimumSizeHint()
-
-            def sizeHint(self):
-                return QLabel().sizeHint()
-
         text_valign = VALIGN_DICT[text_valign]
-        self._label = LabelBrowser()
+        self._label = QLabel()
         if orientation == Qt.Horizontal:
             self._label.setAlignment(Qt.AlignLeft | text_valign)
         else:
-            self._label.setAlignment(Qt.AlignCenter | text_valign)
-        self._label.setLineWrapMode(LabelBrowser.WidgetWidth)
+            self._label.setAlignment(Qt.AlignHCenter | text_valign)
+        self._label.setWordWrap(True)
         self._label.setTextInteractionFlags(
             Qt.TextSelectableByMouse | Qt.TextBrowserInteraction)
         self._label.setOpenExternalLinks(True)
@@ -134,19 +122,19 @@ class ProcessStatusBar(QWidget):
         else:
             alignment = Qt.AlignCenter | icon_valign
         layout.addWidget(self._spinner, 1, 1, alignment)
-        for widget in self._icons.values():
-            layout.addWidget(widget, 1, 1, alignment)
+        for icon in self._icons.values():
+            layout.addWidget(icon, 1, 1, alignment)
+
         if orientation == Qt.Horizontal:
-            layout.setColumnMinimumWidth(2, 5)
-            layout.addWidget(self._label, 1, 3)
+            layout.addWidget(self._label, 1, 2)
             if vsize_policy == 'minimum':
                 layout.setRowStretch(0, 100)
                 layout.setRowStretch(3, 100)
             elif vsize_policy == 'expanding':
                 layout.setRowStretch(1, 100)
             # We ignore 'hsize_policy' when orientation is horizontal.
-            layout.setColumnStretch(3, 100)
-            layout.setSpacing(spacing or 0)
+            layout.setColumnStretch(2, 100)
+            layout.setSpacing(spacing)
         else:
             layout.addWidget(self._label, 2, 1)
             if vsize_policy == 'minimum':
@@ -163,7 +151,7 @@ class ProcessStatusBar(QWidget):
                 layout.setColumnStretch(2, 100)
             elif hsize_policy == 'expanding':
                 layout.setColumnStretch(1, 100)
-            layout.setSpacing(spacing or 5)
+            layout.setSpacing(spacing)
 
     def show_icon(self, icon_name):
         """Show icon named 'icon_name' and hide all other icons."""
