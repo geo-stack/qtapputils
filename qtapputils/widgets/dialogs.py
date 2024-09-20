@@ -11,15 +11,73 @@ from typing import Callable
 
 
 # ---- Third party imports
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QSize
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (
     QApplication, QDialog, QDialogButtonBox, QPushButton,
-    QWidget, QStackedWidget, QVBoxLayout, QGridLayout)
-from qtapputils.icons import get_standard_icon, get_standard_iconsize
-from qtapputils.qthelpers import get_default_contents_margins
+    QWidget, QStackedWidget, QVBoxLayout, QGridLayout, QTextBrowser, QLabel)
 
 # ---- Local imports
+from qtapputils.icons import get_standard_icon, get_standard_iconsize
+from qtapputils.qthelpers import get_default_contents_margins
 from qtapputils.widgets.statusbar import ProcessStatusBar
+
+
+class UserMessage(QWidget):
+
+    def __init__(self, parent=None,
+                 icon: QIcon = None, iconsize: int = 24, text: str = None,
+                 spacing: int = 5, contents_margin: list = None):
+        super().__init__(parent)
+        self._iconsize = iconsize
+
+        # Setup the container for the text.
+        class LabelBrowser(QTextBrowser):
+            def text(self):
+                return self.toPlainText()
+
+            def minimumSizeHint(self):
+                return QLabel().minimumSizeHint()
+
+            def sizeHint(self):
+                return QLabel().sizeHint()
+        self._label = LabelBrowser()
+        self._label.setLineWrapMode(LabelBrowser.WidgetWidth)
+        self._label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        self._label.setTextInteractionFlags(
+            Qt.TextSelectableByMouse | Qt.TextBrowserInteraction)
+        self._label.setOpenExternalLinks(True)
+        self._label.setFocusPolicy(Qt.NoFocus)
+        self._label.setFrameStyle(0)
+        self._label.setStyleSheet("background-color:transparent;")
+
+        # Setup the container for the icon
+        self._icon = QLabel()
+
+        # Setup layout.
+        layout = QGridLayout(self)
+        if contents_margin is None:
+            contents_margin = [0, 0, 0, 0]
+        layout.setContentsMargins(*contents_margin)
+        layout.setSpacing(spacing)
+
+        layout.addWidget(self._icon, 0, 0, Qt.AlignLeft | Qt.AlignTop)
+        layout.addWidget(self._label, 0, 1)
+
+        if icon is not None:
+            self.set_icon(icon)
+        if text is not None:
+            self.set_text()
+
+    def set_icon(self, icon: QIcon):
+        """Set the icon of the user message."""
+        self._icon.setPixmap(
+            icon.pixmap(QSize(self._iconsize, self._iconsize))
+            )
+
+    def set_text(self, text: str):
+        """Set the text of the user message."""
+        self._label.setText(text)
 
 
 class UserMessageDialogBase(QDialog):
@@ -95,17 +153,14 @@ class UserMessageDialogBase(QDialog):
 
     def create_msg_dialog(self, std_icon_name: str,
                           buttons: list[QPushButton]
-                          ) -> ProcessStatusBar:
+                          ) -> UserMessage:
         """Create a new message dialog."""
-        dialog = ProcessStatusBar(
+        dialog = UserMessage(
             spacing=10,
-            icon_valign='top',
-            vsize_policy='expanding',
-            hsize_policy='expanding',
-            text_valign='top',
             iconsize=get_standard_iconsize('messagebox'),
             contents_margin=get_default_contents_margins())
-        dialog.set_icon('failed', get_standard_icon(std_icon_name))
+        dialog.set_icon(get_standard_icon(std_icon_name))
+
         dialog.setAutoFillBackground(True)
         dialog._buttons = buttons
 
@@ -119,7 +174,7 @@ class UserMessageDialogBase(QDialog):
 
         return dialog
 
-    def add_msg_dialog(self, dialog: ProcessStatusBar):
+    def add_msg_dialog(self, dialog: UserMessage):
         """Add a new message dialog to the stack widget."""
         self._dialogs.append(dialog)
         self.stackwidget.addWidget(dialog)
@@ -133,7 +188,7 @@ class UserMessageDialogBase(QDialog):
         self.show()
         for btn in self._buttons:
             btn.setVisible(btn in dialog._buttons)
-        dialog.show_fail_icon(message)
+        dialog.set_text(message)
         self.stackwidget.setCurrentWidget(dialog)
         if beep is True:
             QApplication.beep()
