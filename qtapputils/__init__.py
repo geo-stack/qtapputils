@@ -7,7 +7,7 @@
 # Licensed under the terms of the MIT License.
 # -----------------------------------------------------------------------------
 
-version_info = (0, 5, 3)
+version_info = (0, 6, 0)
 __version__ = '.'.join(map(str, version_info))
-__date__ = '25/06/2025'
+__date__ = '20/09/2024'
 __project_url__ = "https://github.com/jnsebgosselin/qtapputils"
