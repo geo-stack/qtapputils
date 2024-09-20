@@ -134,9 +134,10 @@ class UserMessageDialogBase(QDialog):
             *get_default_contents_margins())
 
     # ---- Helpers Methods
-    def create_button(self, text: str, enabled: bool = True,
-                      triggered: Callable = None, default: bool = False
-                      ) -> QPushButton:
+    def create_button(
+            self, text: str, enabled: bool = True,
+            triggered: Callable = None, default: bool = False
+            ) -> QPushButton:
         """Create a pushbutton to add to the button box."""
         button = QPushButton(text)
         button.setDefault(default)
@@ -151,9 +152,9 @@ class UserMessageDialogBase(QDialog):
         self._buttons.append(button)
         self.button_box.layout().addWidget(button)
 
-    def create_msg_dialog(self, std_icon_name: str,
-                          buttons: list[QPushButton]
-                          ) -> UserMessage:
+    def create_msg_dialog(
+            self, std_icon_name: str, buttons: list[QPushButton]
+            ) -> UserMessage:
         """Create a new message dialog."""
         dialog = UserMessage(
             spacing=10,
