@@ -35,8 +35,7 @@ class ProcessStatusBar(QWidget):
                  orientation=Qt.Horizontal, spacing: int = 5,
                  contents_margin: list = None,
                  hsize_policy='minimum', vsize_policy='minimum',
-                 text_valign='center', icon_valign='center',
-                 label_pad: int = 5):
+                 text_valign='center', icon_valign='center'):
         """
         A process status bar including an icon and a label.
 
