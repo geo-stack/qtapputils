@@ -10,9 +10,8 @@
 # ---- Third party imports
 from qtpy.QtCore import QSize, Qt
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QGridLayout, QLabel, QWidget, QTextBrowser
+from qtpy.QtWidgets import QGridLayout, QLabel, QWidget
 import qtawesome as qta
-
 
 # ---- Local imports
 from qtapputils.qthelpers import create_waitspinner
