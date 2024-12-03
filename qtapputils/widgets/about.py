@@ -73,6 +73,7 @@ class AboutDialog(QDialog):
             text += "<p>" + system_info + "</p>"
         text += "</div>"
 
+        self.label = QLabel(text)
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignTop)
         self.label.setOpenExternalLinks(True)
