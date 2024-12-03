@@ -52,7 +52,7 @@ class SystemMessageDialog(QDialog):
             Qt.WindowMinMaxButtonsHint)
         if icon is not None:
             self.setWindowIcon(icon)
-        self.setWindowTitle("Messages")
+        self.setWindowTitle(title)
         self.setMinimumSize(700, 500)
 
         def _save_file(filename, content):
