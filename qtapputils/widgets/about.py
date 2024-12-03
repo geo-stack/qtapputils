@@ -38,6 +38,12 @@ class AboutDialog(QDialog):
         self.setWindowIcon(icon)
         self.setWindowTitle(title)
 
+        pixmap = QPixmap(banner_fpath)
+        self.label_pic = QLabel(self)
+        self.label_pic.setPixmap(
+            pixmap.scaledToWidth(450, Qt.SmoothTransformation))
+        self.label_pic.setAlignment(Qt.AlignTop)
+
         # Get current font properties
         font = self.font()
         font_family = font.family()
@@ -71,12 +77,6 @@ class AboutDialog(QDialog):
         self.label.setAlignment(Qt.AlignTop)
         self.label.setOpenExternalLinks(True)
         self.label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-
-        pixmap = QPixmap(banner_fpath)
-        self.label_pic = QLabel(self)
-        self.label_pic.setPixmap(
-            pixmap.scaledToWidth(450, Qt.SmoothTransformation))
-        self.label_pic.setAlignment(Qt.AlignTop)
 
         content_frame = QFrame(self)
         content_frame.setStyleSheet(
