@@ -27,6 +27,7 @@ class AboutDialog(QDialog):
                  appname: str,
                  website_url: str,
                  banner_fpath: str,
+                 system_info: str = None,
                  license_fpath: str = None,
                  parent: QWidget = None,
                  ):
@@ -37,12 +38,18 @@ class AboutDialog(QDialog):
         self.setWindowIcon(icon)
         self.setWindowTitle(title)
 
+        pixmap = QPixmap(banner_fpath)
+        self.label_pic = QLabel(self)
+        self.label_pic.setPixmap(
+            pixmap.scaledToWidth(450, Qt.SmoothTransformation))
+        self.label_pic.setAlignment(Qt.AlignTop)
+
         # Get current font properties
         font = self.font()
         font_family = font.family()
         font_size = font.pointSize()
 
-        self.label = QLabel((
+        text = (
             """
             <div style='font-family: "{font_family}";
                         font-size: {font_size}pt;
@@ -54,26 +61,23 @@ class AboutDialog(QDialog):
             <a href="{website_url}">{website_url}</a>
             </p>
             <p>{longdesc}</p>
-            </div>
             """.format(
                 appname=appname,
                 website_url=website_url,
                 font_family=font_family,
                 font_size=font_size,
                 copyright_holder=copyright_holder,
-                longdesc=longdesc
-            )
-        ))
+                longdesc=longdesc)
+        )
+        if system_info is not None:
+            text += "<p>" + system_info + "</p>"
+        text += "</div>"
+
+        self.label = QLabel(text)
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignTop)
         self.label.setOpenExternalLinks(True)
         self.label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-
-        pixmap = QPixmap(banner_fpath)
-        self.label_pic = QLabel(self)
-        self.label_pic.setPixmap(
-            pixmap.scaledToWidth(450, Qt.SmoothTransformation))
-        self.label_pic.setAlignment(Qt.AlignTop)
 
         content_frame = QFrame(self)
         content_frame.setStyleSheet(
