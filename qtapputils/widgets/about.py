@@ -9,15 +9,12 @@
 
 """About app dialog."""
 
-# ---- Standard imports
-import sys
-
 
 # ---- Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPixmap, QIcon
 from qtpy.QtWidgets import (
-    QApplication, QDialog, QDialogButtonBox, QGridLayout, QLabel, QFrame,
+    QDialog, QDialogButtonBox, QGridLayout, QLabel, QFrame,
     QWidget, QTextEdit, QVBoxLayout
     )
 
@@ -113,10 +110,3 @@ class AboutDialog(QDialog):
         super().show()
         self.activateWindow()
         self.raise_()
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    about = AboutDialog()
-    about.show()
-    sys.exit(app.exec_())
