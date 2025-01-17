@@ -80,7 +80,8 @@ class ConfDialog(QDialog):
     A dialog window to manage app preferences.
     """
 
-    def __init__(self, main, icon: QIcon = None, resizable: bool = True):
+    def __init__(self, main, icon: QIcon = None, resizable: bool = True,
+                 min_height: int = None):
         super().__init__(main)
         self.main = main
 
@@ -90,7 +91,8 @@ class ConfDialog(QDialog):
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setModal(True)
-        self.setMinimumHeight(500)
+        if min_height is not None:
+            self.setMinimumHeight(min_height)
 
         self.confpages_tabwidget = QTabWidget()
         self.confpages_tabwidget.setTabBar(HorizontalTabBar())
