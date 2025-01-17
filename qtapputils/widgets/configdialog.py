@@ -17,7 +17,7 @@ from qtpy.QtGui import QIcon, QPixmap
 from qtpy.QtWidgets import (
     QAbstractButton, QApplication, QStyle, QStylePainter,
     QDialog, QPushButton, QDialogButtonBox, QWidget, QTabWidget,
-    QGridLayout, QTabBar, QStyleOptionTab)
+    QGridLayout, QTabBar, QStyleOptionTab, QLabel)
 
 
 class HorizontalTabBar(QTabBar):
@@ -80,17 +80,20 @@ class ConfDialog(QDialog):
     A dialog window to manage app preferences.
     """
 
-    def __init__(self, main, icon: QIcon = None, resizable: bool = True):
+    def __init__(self, main, icon: QIcon = None, resizable: bool = True,
+                 min_height: int = None, sup_message: str = None,
+                 btn_labels: dict = None, win_title: str = 'Preferences'):
         super().__init__(main)
         self.main = main
 
-        self.setWindowTitle('Preferences')
+        self.setWindowTitle(win_title)
         if icon is not None:
             self.setWindowIcon(icon)
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setModal(True)
-        self.setMinimumHeight(500)
+        if min_height is not None:
+            self.setMinimumHeight(min_height)
 
         self.confpages_tabwidget = QTabWidget()
         self.confpages_tabwidget.setTabBar(HorizontalTabBar())
@@ -98,13 +101,15 @@ class ConfDialog(QDialog):
         self._confpages = {}
 
         # Setup the dialog button box.
-        self.ok_button = QPushButton('OK')
+        btn_labels = {} if btn_labels is None else btn_labels
+
+        self.ok_button = QPushButton(btn_labels.get('ok', 'OK'))
         self.ok_button.setDefault(False)
         self.ok_button.setAutoDefault(False)
-        self.apply_button = QPushButton('Apply')
+        self.apply_button = QPushButton(btn_labels.get('apply', 'Apply'))
         self.apply_button.setDefault(True)
         self.apply_button.setEnabled(False)
-        self.cancel_button = QPushButton('Cancel')
+        self.cancel_button = QPushButton(btn_labels.get('cancel', 'Cancel'))
         self.cancel_button.setDefault(False)
         self.cancel_button.setAutoDefault(False)
 
@@ -117,9 +122,17 @@ class ConfDialog(QDialog):
 
         # Setup the main layout.
         main_layout = QGridLayout(self)
-        main_layout.addWidget(self.confpages_tabwidget)
-        main_layout.addWidget(button_box)
-        main_layout.setRowStretch(0, 1)
+
+        row = 0
+        if sup_message is not None:
+            label = QLabel(sup_message)
+            label.setWordWrap(True)
+            label.setMargin(10)
+            main_layout.addWidget(label, row, 0)
+            row += 1
+        main_layout.addWidget(self.confpages_tabwidget, row, 0)
+        main_layout.setRowStretch(row, 1)
+        main_layout.addWidget(button_box, row+1, 0)
         if resizable is False:
             main_layout.setSizeConstraint(main_layout.SetFixedSize)
 
