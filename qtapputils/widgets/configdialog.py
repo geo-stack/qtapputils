@@ -17,7 +17,7 @@ from qtpy.QtGui import QIcon, QPixmap
 from qtpy.QtWidgets import (
     QAbstractButton, QApplication, QStyle, QStylePainter,
     QDialog, QPushButton, QDialogButtonBox, QWidget, QTabWidget,
-    QGridLayout, QTabBar, QStyleOptionTab)
+    QGridLayout, QTabBar, QStyleOptionTab, QLabel)
 
 
 class HorizontalTabBar(QTabBar):
@@ -81,7 +81,7 @@ class ConfDialog(QDialog):
     """
 
     def __init__(self, main, icon: QIcon = None, resizable: bool = True,
-                 min_height: int = None):
+                 min_height: int = None, sup_message: str = None):
         super().__init__(main)
         self.main = main
 
@@ -119,9 +119,17 @@ class ConfDialog(QDialog):
 
         # Setup the main layout.
         main_layout = QGridLayout(self)
-        main_layout.addWidget(self.confpages_tabwidget)
-        main_layout.addWidget(button_box)
-        main_layout.setRowStretch(0, 1)
+
+        row = 0
+        if sup_message is not None:
+            label = QLabel(sup_message)
+            label.setWordWrap(True)
+            label.setMargin(10)
+            main_layout.addWidget(label, row, 0)
+            row += 1
+        main_layout.addWidget(self.confpages_tabwidget, row, 0)
+        main_layout.setRowStretch(row, 1)
+        main_layout.addWidget(button_box, row+1, 0)
         if resizable is False:
             main_layout.setSizeConstraint(main_layout.SetFixedSize)
 
