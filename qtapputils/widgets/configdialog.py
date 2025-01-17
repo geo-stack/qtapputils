@@ -82,11 +82,11 @@ class ConfDialog(QDialog):
 
     def __init__(self, main, icon: QIcon = None, resizable: bool = True,
                  min_height: int = None, sup_message: str = None,
-                 btn_labels: dict = None):
+                 btn_labels: dict = None, win_title: str = 'Preferences'):
         super().__init__(main)
         self.main = main
 
-        self.setWindowTitle('Preferences')
+        self.setWindowTitle(win_title)
         if icon is not None:
             self.setWindowIcon(icon)
         self.setWindowFlags(
