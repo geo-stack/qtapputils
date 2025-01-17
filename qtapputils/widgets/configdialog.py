@@ -81,7 +81,8 @@ class ConfDialog(QDialog):
     """
 
     def __init__(self, main, icon: QIcon = None, resizable: bool = True,
-                 min_height: int = None, sup_message: str = None):
+                 min_height: int = None, sup_message: str = None,
+                 btn_labels: dict = None):
         super().__init__(main)
         self.main = main
 
@@ -100,13 +101,15 @@ class ConfDialog(QDialog):
         self._confpages = {}
 
         # Setup the dialog button box.
-        self.ok_button = QPushButton('OK')
+        btn_labels = {} if btn_labels is None else btn_labels
+
+        self.ok_button = QPushButton(btn_labels.get('ok', 'OK'))
         self.ok_button.setDefault(False)
         self.ok_button.setAutoDefault(False)
-        self.apply_button = QPushButton('Apply')
+        self.apply_button = QPushButton(btn_labels.get('apply', 'Apply'))
         self.apply_button.setDefault(True)
         self.apply_button.setEnabled(False)
-        self.cancel_button = QPushButton('Cancel')
+        self.cancel_button = QPushButton(btn_labels.get('cancel', 'Cancel'))
         self.cancel_button.setDefault(False)
         self.cancel_button.setAutoDefault(False)
 
