@@ -184,6 +184,8 @@ class RangeWidget(QObject):
         old_end = self.end()
 
         self._block_spinboxes_signals(True)
+        self.spinbox_start.setMaximum(end)
+        self.spinbox_end.setMinimum(start)
         self.spinbox_start.setValue(start)
         self.spinbox_end.setValue(end)
         self._block_spinboxes_signals(False)
