@@ -182,10 +182,11 @@ class RangeWidget(QObject):
         """Set the start and end value of the range."""
         old_start = self.start()
         old_end = self.end()
+        step = 0 if self.null_range_ok else 10**-self.decimals
 
         self._block_spinboxes_signals(True)
-        self.spinbox_start.setMaximum(end)
-        self.spinbox_end.setMinimum(start)
+        self.spinbox_start.setMaximum(self.spinbox_end.maximum() - step)
+        self.spinbox_end.setMinimum(self.spinbox_start.minimum() + step)
         self.spinbox_start.setValue(start)
         self.spinbox_end.setValue(end)
         self._block_spinboxes_signals(False)
