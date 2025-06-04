@@ -149,6 +149,9 @@ class RangeWidget(QObject):
         self.decimals = decimals
         self.null_range_ok = null_range_ok
 
+        self._start = minimum
+        self._end = maximum
+
         self.spinbox_start = RangeSpinBox(
             minimum=minimum, singlestep=singlestep, decimals=decimals,
             value=minimum)
@@ -179,8 +182,11 @@ class RangeWidget(QObject):
         """Set the start and end value of the range."""
         old_start = self.start()
         old_end = self.end()
+        step = 0 if self.null_range_ok else 10**-self.decimals
 
         self._block_spinboxes_signals(True)
+        self.spinbox_start.setMaximum(self.spinbox_end.maximum() - step)
+        self.spinbox_end.setMinimum(self.spinbox_start.minimum() + step)
         self.spinbox_start.setValue(start)
         self.spinbox_end.setValue(end)
         self._block_spinboxes_signals(False)
@@ -232,4 +238,7 @@ class RangeWidget(QObject):
         Handle when the value of the lowcut or highcut spinbox changed.
         """
         self._update_spinbox_range()
-        self.sig_range_changed.emit(self.start(), self.end())
+        if self._start != self.start() or self._end != self.end():
+            self._start = self.start()
+            self._end = self.end()
+            self.sig_range_changed.emit(self.start(), self.end())

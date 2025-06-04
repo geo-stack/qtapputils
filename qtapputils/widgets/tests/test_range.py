@@ -140,20 +140,30 @@ def test_range_widget(range_widget, qtbot):
     assert range_widget.spinbox_end.maximum() == 74.00
     assert range_widget.spinbox_end.value() == 62.3
 
+    # Test that setting a range that is mutually exclusive from the
+    # previous range is working as expected. See geo-stack/qtapputils#28.
+    range_widget.set_range(25, 30)
+    assert range_widget.start() == 25
+    assert range_widget.end() == 30
+
+    range_widget.set_range(65, 70)
+    assert range_widget.start() == 65
+    assert range_widget.end() == 70
+
     # Test entering values in spinbox.
     range_widget.spinbox_start.clear()
     qtbot.keyClicks(range_widget.spinbox_start, '43.51')
     qtbot.keyClick(range_widget.spinbox_start, Qt.Key_Enter)
     assert range_widget.start() == 43.51
-    assert range_widget.end() == 62.3
+    assert range_widget.end() == 70.00
 
     assert range_widget.spinbox_start.minimum() == 24
-    assert range_widget.spinbox_start.maximum() == 62.29
+    assert range_widget.spinbox_start.maximum() == 69.99
     assert range_widget.spinbox_start.value() == 43.51
 
     assert range_widget.spinbox_end.minimum() == 43.52
     assert range_widget.spinbox_end.maximum() == 74.00
-    assert range_widget.spinbox_end.value() == 62.3
+    assert range_widget.spinbox_end.value() == 70.00
 
 
 if __name__ == '__main__':
