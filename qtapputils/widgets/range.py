@@ -104,7 +104,6 @@ class PreciseDoubleSpinBox(DoubleSpinBox):
         """
         Qt method override to save the value in an internal variable.
         """
-        print(self.value(), new_value, self.maximum(), self.minimum())
         new_value = max(min(new_value, self.maximum()), self.minimum())
         if new_value == self.value():
             return
