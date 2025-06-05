@@ -52,7 +52,7 @@ class DoubleSpinBox(QDoubleSpinBox):
         """
         Override qt base method to work around the bug described at
         https://bugreports.qt.io/browse/QTBUG-77939 when a ',' is
-        used as decimal separator.
+        both used as thousands and decimal separator.
         """
         from qtpy.QtCore import QLocale
         LOCALE = QLocale()
@@ -70,7 +70,6 @@ class DoubleSpinBox(QDoubleSpinBox):
                     )
 
 
-class RangeSpinBox(DoubleSpinBox):
 class PreciseDoubleSpinBox(DoubleSpinBox):
     """
     A QDoubleSpinBox subclass that avoids precision loss when values are set
@@ -118,6 +117,7 @@ class PreciseDoubleSpinBox(DoubleSpinBox):
         self.sig_value_changed.emit(new_value)
 
 
+class RangeSpinBox(PreciseDoubleSpinBox):
     """
     A spinbox that allow to enter values that are lower or higher than the
     minimum and maximum value of the spinbox.
@@ -159,10 +159,16 @@ class PreciseDoubleSpinBox(DoubleSpinBox):
             return super().fixup(value)
 
         num, success = LOCALE.toDouble(value)
+        if not success:
+            return super().fixup(value)
+
+        num = float(num)
         if float(num) > self.maximum():
             return self.textFromValue(self.maximum())
-        else:
+        elif float(num) < self.minimum():
             return self.textFromValue(self.minimum())
+        else:
+            return self.textFromValue(num)
 
     def validate(self, value, pos):
         """Override Qt method."""
@@ -173,10 +179,15 @@ class PreciseDoubleSpinBox(DoubleSpinBox):
         if success is False:
             return QValidator.Invalid, value, pos
 
-        if float(num) > self.maximum() or float(num) < self.minimum():
+        num = float(num)
+        if num > self.maximum() or num < self.minimum():
             return QValidator.Intermediate, value, pos
-        else:
-            return QValidator.Acceptable, value, pos
+
+        # Check if the number has more decimals than allowed.
+        if value != self.textFromValue(num):
+            return QValidator.Intermediate, value, pos
+
+        return QValidator.Acceptable, value, pos
 
 
 class RangeWidget(QObject):
