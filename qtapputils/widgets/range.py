@@ -71,6 +71,53 @@ class DoubleSpinBox(QDoubleSpinBox):
 
 
 class RangeSpinBox(DoubleSpinBox):
+class PreciseDoubleSpinBox(DoubleSpinBox):
+    """
+    A QDoubleSpinBox subclass that avoids precision loss when values are set
+    programmatically by storing the actual value in a dedicated internal
+    variable.
+
+    This is useful when the spinbox's `decimals` setting could otherwise round
+    values prematurely or inaccurately. The internal value is used for logic,
+    while the UI remains consistent with QDoubleSpinBox display behavior.
+    """
+    sig_value_changed = Signal(float)
+
+    def __init__(self, *args, **kwargs):
+        self.__value__ = None
+        super().__init__(*args, **kwargs)
+
+        self.valueChanged.connect(self.__handle_value_changed__)
+
+    def __handle_value_changed__(self, value):
+        self.__value__ = value
+        self.sig_value_changed.emit(value)
+
+    # ---- QDoubleSpinBox Interface
+    def value(self):
+        """
+        Qt method override that returns the value stored in the internal
+        variable instead of the one displayed in the UI.
+        """
+        return super().value() if self.__value__ is None else self.__value__
+
+    def setValue(self, new_value):
+        """
+        Qt method override to save the value in an internal variable.
+        """
+        print(self.value(), new_value, self.maximum(), self.minimum())
+        new_value = max(min(new_value, self.maximum()), self.minimum())
+        if new_value == self.value():
+            return
+        self.__value__ = new_value
+
+        self.blockSignals(True)
+        super().setValue(new_value)
+        self.blockSignals(False)
+
+        self.sig_value_changed.emit(new_value)
+
+
     """
     A spinbox that allow to enter values that are lower or higher than the
     minimum and maximum value of the spinbox.
