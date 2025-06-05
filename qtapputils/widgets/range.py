@@ -213,17 +213,13 @@ class RangeWidget(QObject):
         self.spinbox_start = RangeSpinBox(
             minimum=minimum, singlestep=singlestep, decimals=decimals,
             value=minimum)
-        self.spinbox_start.valueChanged.connect(
-            lambda: self._handle_value_changed())
-        self.spinbox_start.editingFinished.connect(
+        self.spinbox_start.sig_value_changed.connect(
             lambda: self._handle_value_changed())
 
         self.spinbox_end = RangeSpinBox(
             maximum=maximum, singlestep=singlestep, decimals=decimals,
             value=maximum)
-        self.spinbox_end.valueChanged.connect(
-            lambda: self._handle_value_changed())
-        self.spinbox_end.editingFinished.connect(
+        self.spinbox_end.sig_value_changed.connect(
             lambda: self._handle_value_changed())
 
         self._update_spinbox_range()
