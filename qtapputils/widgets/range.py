@@ -24,6 +24,8 @@ class DoubleSpinBox(QDoubleSpinBox):
     def __init__(self, parent: QWidget = None,
                  consume_enter_events: bool = True):
         super().__init__(parent)
+        self.setKeyboardTracking(False)
+
         # Whether to consume key press and key release events.
         # See jnsebgosselin/qtapputils#18
         self.consume_enter_events = consume_enter_events
