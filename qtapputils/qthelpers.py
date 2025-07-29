@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING:
     from qtpy.QtGui import QIcon
+    from qtapputils.widgets.waitingspinner import WaitingSpinner
 
 # ---- Standard imports
 from contextlib import contextmanager
@@ -26,9 +27,6 @@ from qtpy.QtCore import QByteArray, Qt, QSize
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction,
     QToolBar)
-
-# --- Local imports
-from qtapputils.widgets.waitingspinner import WaitingSpinner
 
 
 def qbytearray_to_hexstate(qba):
@@ -174,6 +172,8 @@ def create_waitspinner(
     spinner : WaitingSpinner
         The waitspinner created with the specified parameters
     """
+    from qtapputils.widgets.waitingspinner import WaitingSpinner
+
     dot_padding = 1
 
     # To calculate the size of the dots, we need to solve the following
