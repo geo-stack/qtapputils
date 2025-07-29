@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from qtpy.QtGui import QIcon
 
 # ---- Standard imports
+from contextlib import contextmanager
 import sys
 import platform
 from math import pi
@@ -254,3 +255,14 @@ def get_default_contents_margins() -> list[int, int, int, int]:
         style.pixelMetric(style.PM_LayoutRightMargin),
         style.pixelMetric(style.PM_LayoutBottomMargin),
         ]
+
+
+@contextmanager
+def block_signals(widget):
+    """Temporarily block signals for the given widget."""
+    was_blocked = widget.signalsBlocked()
+    widget.blockSignals(True)
+    try:
+        yield
+    finally:
+        widget.blockSignals(was_blocked)
