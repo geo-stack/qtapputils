@@ -10,8 +10,9 @@
 """Tests for the RangeSpinBox and RangeWidget."""
 
 from qtpy.QtCore import Qt
-from qtapputils.widgets import RangeSpinBox, RangeWidget
 import pytest
+
+from qtapputils.widgets import RangeSpinBox, RangeWidget, PreciseSpinBox
 
 
 # =============================================================================
@@ -62,6 +63,45 @@ def range_widget(qtbot):
 # =============================================================================
 # Tests
 # =============================================================================
+def test_precise_dspinbox(qtbot):
+    """
+    Test that PreciseSpinBox preserves full precision internally
+    while displaying rounded values.
+    """
+    spin = PreciseSpinBox()
+    spin.setDecimals(2)
+    spin.setRange(-1e9, 1e9)
+    qtbot.addWidget(spin)
+    spin.show()
+
+    # Connect a flag to check signal emission
+    emitted_values = []
+    spin.sig_value_changed.connect(lambda v: emitted_values.append(v))
+
+    # Set a value with high precision
+    precise_value = 3.141592653589793
+    spin.setValue(precise_value)
+
+    # Internal value should match the full float64 precision.
+    assert spin.value() == precise_value
+    assert emitted_values == [precise_value]
+
+    # The displayed value in the UI should be rounded to 2 decimals
+    assert spin.text() == "3.14"
+
+    # Setting the same value again should NOT emit the signal
+    spin.setValue(precise_value)
+    assert emitted_values == [precise_value]
+
+    # Changing the value from the GUI should update the internal value.
+    spin.clear()
+    qtbot.keyClicks(spin, '4.12345')
+    qtbot.keyClick(spin, Qt.Key_Enter)
+
+    assert spin.value() == 4.12
+    assert emitted_values == [precise_value, 4.12]
+
+
 def test_range_spinbox(range_spinbox, qtbot):
     """
     Test that the RangeSpinBox is working as expected.

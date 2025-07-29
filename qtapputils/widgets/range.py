@@ -24,6 +24,7 @@ class DoubleSpinBox(QDoubleSpinBox):
     def __init__(self, parent: QWidget = None,
                  consume_enter_events: bool = True):
         super().__init__(parent)
+
         # Whether to consume key press and key release events.
         # See jnsebgosselin/qtapputils#18
         self.consume_enter_events = consume_enter_events
@@ -68,6 +69,44 @@ class DoubleSpinBox(QDoubleSpinBox):
                     tostr[:-index-1].replace(LOCALE.groupSeparator(), '') +
                     tostr[-1-index:]
                     )
+
+
+class PreciseSpinBox(DoubleSpinBox):
+    """
+    QDoubleSpinBox that preserves full float64 precision when values are set
+    programmatically, while still displaying only as many decimals as
+    configured.
+    """
+    sig_value_changed = Signal(float)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setKeyboardTracking(False)
+        self._true_value = super().value()
+        self.valueChanged.connect(self._handle_user_change)
+
+    def _handle_user_change(self, value: float):
+        """Update internal value when the user edits the widget."""
+        self._true_value = value
+        self.sig_value_changed.emit(value)
+
+    # ---- QDoubleSpinBox Interface
+    def value(self) -> float:
+        """Return the precise stored value."""
+        return self._true_value
+
+    def setValue(self, new_value: float):
+        """Set the value without losing precision due to display rounding."""
+        new_value = max(min(new_value, self.maximum()), self.minimum())
+        if new_value == self._true_value:
+            return
+        self._true_value = float(new_value)
+
+        self.blockSignals(True)
+        super().setValue(new_value)
+        self.blockSignals(False)
+
+        self.sig_value_changed.emit(self._true_value)
 
 
 class RangeSpinBox(DoubleSpinBox):
