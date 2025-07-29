@@ -70,54 +70,44 @@ class DoubleSpinBox(QDoubleSpinBox):
                     )
 
 
-class RangeSpinBox(DoubleSpinBox):
-class PreciseDoubleSpinBox(DoubleSpinBox):
+class PreciseSpinBox(DoubleSpinBox):
     """
-    A QDoubleSpinBox subclass that avoids precision loss when values are set
-    programmatically by storing the actual value in a dedicated internal
-    variable.
-
-    This is useful when the spinbox's `decimals` setting could otherwise round
-    values prematurely or inaccurately. The internal value is used for logic,
-    while the UI remains consistent with QDoubleSpinBox display behavior.
+    QDoubleSpinBox that preserves full float64 precision when values are set
+    programmatically, while still displaying only as many decimals as
+    configured.
     """
     sig_value_changed = Signal(float)
 
     def __init__(self, *args, **kwargs):
-        self.__value__ = None
         super().__init__(*args, **kwargs)
+        self._true_value = super().value()
+        self.valueChanged.connect(self._handle_user_change)
 
-        self.valueChanged.connect(self.__handle_value_changed__)
-
-    def __handle_value_changed__(self, value):
-        self.__value__ = value
+    def _handle_user_change(self, value: float):
+        """Update internal value when the user edits the widget."""
+        self._true_value = value
         self.sig_value_changed.emit(value)
 
     # ---- QDoubleSpinBox Interface
-    def value(self):
-        """
-        Qt method override that returns the value stored in the internal
-        variable instead of the one displayed in the UI.
-        """
-        return super().value() if self.__value__ is None else self.__value__
+    def value(self) -> float:
+        """Return the precise stored value."""
+        return self._true_value
 
-    def setValue(self, new_value):
-        """
-        Qt method override to save the value in an internal variable.
-        """
-        print(self.value(), new_value, self.maximum(), self.minimum())
+    def setValue(self, new_value: float):
+        """Set the value without losing precision due to display rounding."""
         new_value = max(min(new_value, self.maximum()), self.minimum())
-        if new_value == self.value():
+        if new_value == self._true_value:
             return
-        self.__value__ = new_value
+        self._true_value = float(new_value)
 
         self.blockSignals(True)
         super().setValue(new_value)
         self.blockSignals(False)
 
-        self.sig_value_changed.emit(new_value)
+        self.sig_value_changed.emit(self._true_value)
 
 
+class RangeSpinBox(DoubleSpinBox):
     """
     A spinbox that allow to enter values that are lower or higher than the
     minimum and maximum value of the spinbox.
