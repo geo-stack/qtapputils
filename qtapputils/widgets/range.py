@@ -117,13 +117,13 @@ class PreciseSpinBox(DoubleSpinBox):
     def setValue(self, new_value: float):
         """Set the value without losing precision due to display rounding."""
         old_value = self.value()
-        new_value = max(min(new_value, self.maximum()), self.minimum())
+        new_value = float(max(min(new_value, self.maximum()), self.minimum()))
 
         with block_signals(self):
             super().setValue(new_value)
 
         if self._precise:
-            self._true_value = float(new_value)
+            self._true_value = new_value
 
         if old_value != self.value():
             self.sig_value_changed.emit(self.value())
