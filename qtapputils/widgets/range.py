@@ -73,43 +73,60 @@ class DoubleSpinBox(QDoubleSpinBox):
 
 class PreciseSpinBox(DoubleSpinBox):
     """
-    QDoubleSpinBox that preserves full float64 precision when values are set
-    programmatically, while still displaying only as many decimals as
+    QDoubleSpinBox that optionally preserves full float64 precision when values
+    are set programmatically, while still displaying only as many decimals as
     configured.
+
+    Parameters
+    ----------
+    precise : bool, optional
+        If True (default), the spinbox preserves full float64 precision for
+        programmatically set values. If False, it behaves like a standard
+        QDoubleSpinBox without storing an internal precise value.
     """
     sig_value_changed = Signal(float)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, precise: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self.setKeyboardTracking(False)
+        self._precise = precise
         self._true_value = super().value()
         self.valueChanged.connect(self._handle_user_change)
 
     def _handle_user_change(self, value: float):
         """Update internal value when the user edits the widget."""
-        self._true_value = value
+        if self._precise:
+            self._true_value = value
         self.sig_value_changed.emit(value)
 
     # ---- QDoubleSpinBox Interface
     def value(self) -> float:
-        """Return the precise stored value."""
-        return self._true_value
+        """
+        Return the precise stored value if enabled,
+        otherwise the standard UI value.
+        """
+        if self._precise:
+            return self._true_value
+        return super().value()
 
     def setValue(self, new_value: float):
         """Set the value without losing precision due to display rounding."""
+        old_value = self.value()
         new_value = max(min(new_value, self.maximum()), self.minimum())
-        if new_value == self._true_value:
-            return
-        self._true_value = float(new_value)
 
+        was_blocked = self.signalsBlocked()
         self.blockSignals(True)
         super().setValue(new_value)
-        self.blockSignals(False)
+        self.blockSignals(was_blocked)
 
-        self.sig_value_changed.emit(self._true_value)
+        if self._precise:
+            self._true_value = float(new_value)
+
+        if old_value != self.value():
+            self.sig_value_changed.emit(self.value())
 
 
-class RangeSpinBox(DoubleSpinBox):
+class RangeSpinBox(PreciseSpinBox):
     """
     A spinbox that allow to enter values that are lower or higher than the
     minimum and maximum value of the spinbox.
@@ -121,9 +138,9 @@ class RangeSpinBox(DoubleSpinBox):
 
     def __init__(self, parent: QWidget = None, maximum: float = None,
                  minimum: float = None, singlestep: float = None,
-                 decimals: int = None, value: float = None):
-        super().__init__(parent)
-        self.setKeyboardTracking(False)
+                 decimals: int = None, value: float = None,
+                 precise: bool = False):
+        super().__init__(parent=parent, precise=precise)
         if minimum is not None:
             self.setMinimum(minimum)
         if maximum is not None:
@@ -205,17 +222,15 @@ class RangeWidget(QObject):
         self.spinbox_start = RangeSpinBox(
             minimum=minimum, singlestep=singlestep, decimals=decimals,
             value=minimum)
-        self.spinbox_start.valueChanged.connect(
-            lambda: self._handle_value_changed())
-        self.spinbox_start.editingFinished.connect(
+
+        self.spinbox_start.sig_value_changed.connect(
             lambda: self._handle_value_changed())
 
         self.spinbox_end = RangeSpinBox(
             maximum=maximum, singlestep=singlestep, decimals=decimals,
             value=maximum)
-        self.spinbox_end.valueChanged.connect(
-            lambda: self._handle_value_changed())
-        self.spinbox_end.editingFinished.connect(
+
+        self.spinbox_end.sig_value_changed.connect(
             lambda: self._handle_value_changed())
 
         self._update_spinbox_range()
@@ -235,10 +250,14 @@ class RangeWidget(QObject):
         step = 0 if self.null_range_ok else 10**-self.decimals
 
         self._block_spinboxes_signals(True)
+
+        # Reset the spin boxes range.
         self.spinbox_start.setMaximum(self.spinbox_end.maximum() - step)
         self.spinbox_end.setMinimum(self.spinbox_start.minimum() + step)
+
         self.spinbox_start.setValue(start)
         self.spinbox_end.setValue(end)
+
         self._block_spinboxes_signals(False)
 
         if old_start != self.start() or old_end != self.end():
@@ -278,9 +297,11 @@ class RangeWidget(QObject):
         mutually exclusive
         """
         self._block_spinboxes_signals(True)
+
         step = 0 if self.null_range_ok else 10**-self.decimals
         self.spinbox_start.setMaximum(self.spinbox_end.value() - step)
         self.spinbox_end.setMinimum(self.spinbox_start.value() + step)
+
         self._block_spinboxes_signals(False)
 
     def _handle_value_changed(self, silent: bool = False):
