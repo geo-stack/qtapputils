@@ -63,12 +63,13 @@ def range_widget(qtbot):
 # =============================================================================
 # Tests
 # =============================================================================
-def test_precise_dspinbox(qtbot):
+@pytest.mark.parametrize("precise_mode", [True, False])
+def test_precise_dspinbox(qtbot, precise_mode):
     """
-    Test that PreciseSpinBox preserves full precision internally
-    while displaying rounded values.
+    Test that PreciseSpinBox behaves correctly in both precise
+    and normal modes.
     """
-    spin = PreciseSpinBox()
+    spin = PreciseSpinBox(precise=precise_mode)
     spin.setDecimals(2)
     spin.setRange(-1e9, 1e9)
     qtbot.addWidget(spin)
@@ -79,19 +80,26 @@ def test_precise_dspinbox(qtbot):
     spin.sig_value_changed.connect(lambda v: emitted_values.append(v))
 
     # Set a value with high precision
-    precise_value = 3.141592653589793
-    spin.setValue(precise_value)
+    spin.setValue(3.141592653589793)
 
-    # Internal value should match the full float64 precision.
-    assert spin.value() == precise_value
-    assert emitted_values == [precise_value]
+    # Internal value should match the full float64 precision in
+    # precise mode.
+    if precise_mode:
+        assert spin.value() == 3.141592653589793
+        assert emitted_values == [3.141592653589793]
+    else:
+        assert spin.value() == 3.14
+        assert emitted_values == [3.14]
 
     # The displayed value in the UI should be rounded to 2 decimals
     assert spin.text() == "3.14"
 
     # Setting the same value again should NOT emit the signal
-    spin.setValue(precise_value)
-    assert emitted_values == [precise_value]
+    spin.setValue(3.141592653589793)
+    if precise_mode:
+        assert emitted_values == [3.141592653589793]
+    else:
+        assert emitted_values == [3.14]
 
     # Changing the value from the GUI should update the internal value.
     spin.clear()
@@ -99,7 +107,10 @@ def test_precise_dspinbox(qtbot):
     qtbot.keyClick(spin, Qt.Key_Enter)
 
     assert spin.value() == 4.12
-    assert emitted_values == [precise_value, 4.12]
+    if precise_mode:
+        assert emitted_values == [3.141592653589793, 4.12]
+    else:
+        assert emitted_values == [3.14, 4.12]
 
 
 def test_range_spinbox(range_spinbox, qtbot):
