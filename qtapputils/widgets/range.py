@@ -73,40 +73,56 @@ class DoubleSpinBox(QDoubleSpinBox):
 
 class PreciseSpinBox(DoubleSpinBox):
     """
-    QDoubleSpinBox that preserves full float64 precision when values are set
-    programmatically, while still displaying only as many decimals as
+    QDoubleSpinBox that optionally preserves full float64 precision when values
+    are set programmatically, while still displaying only as many decimals as
     configured.
+
+    Parameters
+    ----------
+    precise : bool, optional
+        If True (default), the spinbox preserves full float64 precision for
+        programmatically set values. If False, it behaves like a standard
+        QDoubleSpinBox without storing an internal precise value.
     """
     sig_value_changed = Signal(float)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, precise: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self.setKeyboardTracking(False)
+        self._precise = precise
         self._true_value = super().value()
         self.valueChanged.connect(self._handle_user_change)
 
     def _handle_user_change(self, value: float):
         """Update internal value when the user edits the widget."""
-        self._true_value = value
+        if self._precise:
+            self._true_value = value
         self.sig_value_changed.emit(value)
 
     # ---- QDoubleSpinBox Interface
     def value(self) -> float:
-        """Return the precise stored value."""
-        return self._true_value
+        """
+        Return the precise stored value if enabled,
+        otherwise the standard UI value.
+        """
+        if self._precise:
+            return self._true_value
+        return super().value()
 
     def setValue(self, new_value: float):
         """Set the value without losing precision due to display rounding."""
+        old_value = self.value()
         new_value = max(min(new_value, self.maximum()), self.minimum())
-        if new_value == self._true_value:
-            return
-        self._true_value = float(new_value)
 
         self.blockSignals(True)
         super().setValue(new_value)
         self.blockSignals(False)
 
-        self.sig_value_changed.emit(self._true_value)
+        if self._precise:
+            self._true_value = float(new_value)
+
+        if old_value != self.value():
+            self.sig_value_changed.emit(self.value())
 
 
 class RangeSpinBox(DoubleSpinBox):
