@@ -28,7 +28,7 @@ from qtpy.QtWidgets import (
     QToolBar)
 
 # --- Local imports
-from qtapputils.widgets import WaitingSpinner
+from qtapputils.widgets.waitingspinner import WaitingSpinner
 
 
 def qbytearray_to_hexstate(qba):
