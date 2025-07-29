@@ -24,7 +24,6 @@ class DoubleSpinBox(QDoubleSpinBox):
     def __init__(self, parent: QWidget = None,
                  consume_enter_events: bool = True):
         super().__init__(parent)
-        self.setKeyboardTracking(False)
 
         # Whether to consume key press and key release events.
         # See jnsebgosselin/qtapputils#18
@@ -82,6 +81,7 @@ class PreciseSpinBox(DoubleSpinBox):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setKeyboardTracking(False)
         self._true_value = super().value()
         self.valueChanged.connect(self._handle_user_change)
 
