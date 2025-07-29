@@ -114,9 +114,10 @@ class PreciseSpinBox(DoubleSpinBox):
         old_value = self.value()
         new_value = max(min(new_value, self.maximum()), self.minimum())
 
+        was_blocked = self.signalsBlocked()
         self.blockSignals(True)
         super().setValue(new_value)
-        self.blockSignals(False)
+        self.blockSignals(was_blocked)
 
         if self._precise:
             self._true_value = float(new_value)
