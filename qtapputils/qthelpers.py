@@ -13,8 +13,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING:
     from qtpy.QtGui import QIcon
+    from qtapputils.widgets.waitingspinner import WaitingSpinner
 
 # ---- Standard imports
+from contextlib import contextmanager
 import sys
 import platform
 from math import pi
@@ -25,9 +27,6 @@ from qtpy.QtCore import QByteArray, Qt, QSize
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction,
     QToolBar)
-
-# --- Local imports
-from qtapputils.widgets import WaitingSpinner
 
 
 def qbytearray_to_hexstate(qba):
@@ -173,6 +172,8 @@ def create_waitspinner(
     spinner : WaitingSpinner
         The waitspinner created with the specified parameters
     """
+    from qtapputils.widgets.waitingspinner import WaitingSpinner
+
     dot_padding = 1
 
     # To calculate the size of the dots, we need to solve the following
@@ -254,3 +255,14 @@ def get_default_contents_margins() -> list[int, int, int, int]:
         style.pixelMetric(style.PM_LayoutRightMargin),
         style.pixelMetric(style.PM_LayoutBottomMargin),
         ]
+
+
+@contextmanager
+def block_signals(widget):
+    """Temporarily block signals for the given widget."""
+    was_blocked = widget.signalsBlocked()
+    widget.blockSignals(True)
+    try:
+        yield
+    finally:
+        widget.blockSignals(was_blocked)
