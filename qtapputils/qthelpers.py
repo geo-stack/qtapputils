@@ -10,7 +10,7 @@
 """Qt utilities"""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Any, Optional
 if TYPE_CHECKING:
     from qtpy.QtGui import QIcon
     from qtapputils.widgets.waitingspinner import WaitingSpinner
@@ -23,7 +23,7 @@ import time
 from math import pi
 
 # ---- Third party imports
-from qtpy.QtGui import QKeySequence
+from qtpy.QtGui import QKeySequence, QColor, QPalette
 from qtpy.QtCore import QByteArray, Qt, QSize, QEventLoop, QTimer
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction,
@@ -39,6 +39,46 @@ def hexstate_to_qbytearray(hexstate):
     """Convert a str hexstate to a QByteArray object."""
     return QByteArray().fromHex(str(hexstate).encode('utf-8'))
 
+
+def get_qcolor(color: QColor | tuple | list | str) -> QColor:
+    """
+    Return a QColor from various input formats:
+      - QColor instance (returned as is)
+      - RGB or RGBA tuple/list of ints (e.g. (r,g,b) or (r,g,b,a))
+      - RGB Hex string (e.g. '#FFAA00')
+      - Qt color name string (e.g. 'red', 'blue', 'lightgray')
+
+    Parameters
+    ----------
+    color : QColor, tuple/list, or str
+        The color specification.
+
+    Returns
+    -------
+    QColor
+        The corresponding QColor object.
+
+    Raises
+    ------
+    ValueError
+        If the color argument is not valid.
+    """
+    # QColor instance
+    if isinstance(color, QColor):
+        return color
+
+    # Tuple/list RGB(A)
+    if isinstance(color, (tuple, list)):
+        return QColor(*color)
+
+    # String: hex code or color name
+    if isinstance(color, str):
+        # Accept hex (with '#') or color name
+        if color.startswith('#') or color in QColor.colorNames():
+            return QColor(color)
+        raise ValueError(f"Unknown color string: {color!r}")
+
+    raise ValueError(f"Cannot convert argument to QColor: {color!r}")
 
 def create_mainwindow_toolbar(
         title: str, iconsize: int = None, areas: int = Qt.TopToolBarArea,
