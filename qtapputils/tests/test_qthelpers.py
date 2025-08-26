@@ -14,11 +14,11 @@ from math import pi
 from itertools import product
 
 # ---- Third party imports
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QTimer
 import pytest
 
 # ---- Local imports
-from qtapputils.qthelpers import format_tooltip, create_waitspinner
+from qtapputils.qthelpers import format_tooltip, create_waitspinner, qtwait
 
 
 # =============================================================================
@@ -102,6 +102,42 @@ def test_create_waitspinner(spinner, qtbot):
     assert spinner.isVisible() is False
     assert spinner.isSpinning() is False
     assert spinner._currentCounter == 0
+
+
+def test_qtwait_success(qtbot):
+    """
+    Test that qtwait returns successfully when the condition becomes
+    True before timeout.
+
+    This test simulates an asynchronous change: a variable is set to True
+    after 200 ms via a singleShot QTimer. We then call qtwait with a timeout
+    of 1 second and expect it to finish without raising any exception.
+    """
+    state = {'ready': False}
+
+    def set_ready():
+        state['ready'] = True
+
+    QTimer.singleShot(200, set_ready)
+
+    assert state['ready'] is False
+    qtwait(lambda: state['ready'], timeout=1)
+    assert state['ready'] is True
+
+
+def test_qtwait_timeout(qtbot):
+    """
+    Test that qtwait raises a TimeoutError if the condition is never
+    met within the timeout.
+
+    The condition lambda always returns False, so qtwait should raise a
+    TimeoutError after the specified timeout (0.1 seconds).
+
+    The error message should match the one provided.
+    """
+    with pytest.raises(TimeoutError) as excinfo:
+        qtwait(lambda: False, timeout=0.1, error_message="Timeout reached!")
+    assert "Timeout reached!" in str(excinfo.value)
 
 
 if __name__ == "__main__":
