@@ -15,10 +15,12 @@ from itertools import product
 
 # ---- Third party imports
 from qtpy.QtCore import Qt, QTimer
+from qtpy.QtGui import QColor
 import pytest
 
 # ---- Local imports
-from qtapputils.qthelpers import format_tooltip, create_waitspinner, qtwait
+from qtapputils.qthelpers import (
+    format_tooltip, create_waitspinner, qtwait, get_qcolor)
 
 
 # =============================================================================
@@ -138,6 +140,55 @@ def test_qtwait_timeout(qtbot):
     with pytest.raises(TimeoutError) as excinfo:
         qtwait(lambda: False, timeout=0.1, error_message="Timeout reached!")
     assert "Timeout reached!" in str(excinfo.value)
+
+
+def test_get_qcolor():
+    """
+    Test that get_qcolor correctly creates a QColor from various
+    input formats.
+    """
+    # Test from QColor.
+    color = QColor(10, 20, 30)
+    result = get_qcolor(color)
+    assert isinstance(result, QColor)
+    assert result == color
+
+    # Test from RGB tuple.
+    result = get_qcolor((100, 150, 200))
+    assert isinstance(result, QColor)
+    assert result.red() == 100
+    assert result.green() == 150
+    assert result.blue() == 200
+
+    # Test from RGBA list.
+    result = get_qcolor([10, 20, 30, 40])
+    assert isinstance(result, QColor)
+    assert result.red() == 10
+    assert result.green() == 20
+    assert result.blue() == 30
+    assert result.alpha() == 40
+
+    # Test from HEX string.
+    result = get_qcolor("#336699")
+    assert isinstance(result, QColor)
+    assert result.red() == 51
+    assert result.green() == 102
+    assert result.blue() == 153
+
+    # Test from color name.
+    result = get_qcolor("red")
+    assert isinstance(result, QColor)
+    assert result.red() == 255
+    assert result.green() == 0
+    assert result.blue() == 0
+
+    # Test from invalid string.
+    with pytest.raises(ValueError):
+        get_qcolor("notacolor")
+
+    # Test from invalid type.
+    with pytest.raises(ValueError):
+        get_qcolor(12345)
 
 
 if __name__ == "__main__":
