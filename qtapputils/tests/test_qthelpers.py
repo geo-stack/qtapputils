@@ -14,13 +14,15 @@ from math import pi
 from itertools import product
 
 # ---- Third party imports
+from PyQt5.QtWidgets import QWidget
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QColor
 import pytest
 
 # ---- Local imports
 from qtapputils.qthelpers import (
-    format_tooltip, create_waitspinner, qtwait, get_qcolor)
+    format_tooltip, create_waitspinner, qtwait, get_qcolor,
+    set_widget_palette)
 
 
 # =============================================================================
@@ -189,6 +191,44 @@ def test_get_qcolor():
     # Test from invalid type.
     with pytest.raises(ValueError):
         get_qcolor(12345)
+
+
+def test_set_widget_palette(qtbot):
+    """
+    Test set_widget_palette for background, foreground, both, and None cases.
+    """
+    # Background only
+    widget = QWidget()
+    set_widget_palette(widget, bgcolor=(10, 20, 30))
+
+    bg_color = widget.palette().color(widget.backgroundRole())
+    assert isinstance(bg_color, QColor)
+    assert (bg_color.red(), bg_color.green(), bg_color.blue()) == (10, 20, 30)
+    assert widget.autoFillBackground() is True
+
+    # Foreground only
+    widget = QWidget()
+    set_widget_palette(widget, fgcolor="#FF00AA")
+
+    fg_color = widget.palette().color(widget.foregroundRole())
+    assert isinstance(fg_color, QColor)
+    assert (fg_color.red(), fg_color.green(), fg_color.blue()) == (255, 0, 170)
+
+    # Both background and foreground
+    widget = QWidget()
+    set_widget_palette(widget, bgcolor="blue", fgcolor="yellow")
+
+    bg_color = widget.palette().color(widget.backgroundRole())
+    fg_color = widget.palette().color(widget.foregroundRole())
+    assert (bg_color.red(), bg_color.green(), bg_color.blue()) == (0, 0, 255)
+    assert (fg_color.red(), fg_color.green(), fg_color.blue()) == (255, 255, 0)
+
+    # None for both
+    widget = QWidget()
+    orig_palette = widget.palette()
+    set_widget_palette(widget, bgcolor=None, fgcolor=None)
+
+    assert widget.palette() == orig_palette
 
 
 if __name__ == "__main__":
