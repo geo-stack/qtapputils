@@ -19,11 +19,12 @@ if TYPE_CHECKING:
 from contextlib import contextmanager
 import sys
 import platform
+import time
 from math import pi
 
 # ---- Third party imports
 from qtpy.QtGui import QKeySequence
-from qtpy.QtCore import QByteArray, Qt, QSize
+from qtpy.QtCore import QByteArray, Qt, QSize, QEventLoop, QTimer
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction,
     QToolBar)
@@ -266,3 +267,46 @@ def block_signals(widget):
         yield
     finally:
         widget.blockSignals(was_blocked)
+
+
+def qtwait(condition, timeout=None, check_interval=50, error_message=None):
+    """
+    Waits in a Qt event loop until a given condition becomes True,
+    or a timeout is reached.
+
+    Parameters
+    ----------
+    condition : callable
+        A zero-argument function or lambda returning a boolean.
+    timeout : float or None, optional
+        Maximum wait time in seconds. If None, waits indefinitely.
+    check_interval : int, optional
+        Interval (in milliseconds) between checks. Default is 50 ms.
+    error_message : str or None, optional
+        Custom error message to raise if timeout occurs.
+
+    Raises
+    ------
+    TimeoutError
+        If the condition does not become True within the timeout.
+    """
+    loop = QEventLoop()
+    start_time = time.monotonic()
+
+    def check_condition():
+        elapsed_time = time.monotonic() - start_time
+        if condition():
+            loop.quit()
+        elif timeout is not None and elapsed_time >= timeout:
+            loop.quit()
+
+    timer = QTimer()
+    timer.timeout.connect(check_condition)
+    timer.start(check_interval)
+
+    check_condition()
+    loop.exec_()
+
+    if not condition():
+        raise TimeoutError(
+            error_message or "Condition not met within timeout.")
