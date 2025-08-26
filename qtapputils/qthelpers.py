@@ -80,6 +80,39 @@ def get_qcolor(color: QColor | tuple | list | str) -> QColor:
 
     raise ValueError(f"Cannot convert argument to QColor: {color!r}")
 
+
+def set_widget_palette(
+        widget: QWidget,
+        bgcolor: Optional[Any] = None,
+        fgcolor: Optional[Any] = None):
+    """
+    Set the background and foreground color of a QWidget.
+
+    If colors are None, keeps the current palette value. Also enables
+    autoFillBackground for proper background rendering on most widgets.
+
+    Parameters
+    ----------
+    widget : QWidget
+        The widget whose palette will be set.
+    bgcolor : optional
+        Background color specification (QColor, tuple/list, or str).
+    fgcolor : optional
+        Foreground color specification (QColor, tuple/list, or str).
+    """
+    palette = widget.palette()
+    if bgcolor is not None:
+        palette.setColor(widget.backgroundRole(), get_qcolor(bgcolor))
+
+        # Ensure background fills for most widgets.
+        widget.setAutoFillBackground(True)
+
+    if fgcolor is not None:
+        palette.setColor(widget.foregroundRole(), get_qcolor(fgcolor))
+
+    widget.setPalette(palette)
+
+
 def create_mainwindow_toolbar(
         title: str, iconsize: int = None, areas: int = Qt.TopToolBarArea,
         movable: bool = False, floatable: bool = False,
