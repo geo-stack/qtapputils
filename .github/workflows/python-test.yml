@@ -35,4 +35,4 @@ jobs:
       run: |
         codecov
       env:
-        CODECOV_TOKEN: ${{ secrets.SECRET_CODECOV_TOKEN }}
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
