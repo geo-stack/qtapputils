@@ -7,17 +7,19 @@
 # Licensed under the terms of the MIT License.
 # -----------------------------------------------------------------------------
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Any
 if TYPE_CHECKING:
     from uuid import UUID
 
 # ---- Standard imports
 from collections import OrderedDict
-from time import sleep
 import uuid
 
 # ---- Third party imports
 from qtpy.QtCore import QObject, QThread, Signal
+
+# ---- Local imports
+from qtapputils.qthelpers import qtwait
 
 
 class WorkerBase(QObject):
@@ -28,12 +30,24 @@ class WorkerBase(QObject):
 
     def __init__(self):
         super().__init__()
-        self._tasks = OrderedDict()
+        self._tasks: OrderedDict[Any, tuple[str, tuple, dict]] = OrderedDict()
 
-    def add_task(self, task_uuid4, task, *args, **kargs):
+    def _get_method(self, task: str):
+        # Try direct, then fallback to underscore-prefixed (for backward
+        # compatibility with older version of qtapputils).
+        return getattr(self, task, getattr(self, '_' + task))
+
+    def add_task(self, task_uuid4: Any, task: str, *args, **kargs):
         """
-        Add a task to the stack that will be executed when the thread of
-        this worker is started.
+        Add a task to the stack.
+        Parameters
+        ----------
+        task_uuid4 : UUID or any hashable
+            Unique ID for the task.
+        task : str
+            The name of the method to execute.
+        *args, **kargs :
+            Arguments for the task.
         """
         self._tasks[task_uuid4] = (task, args, kargs)
 
@@ -41,12 +55,13 @@ class WorkerBase(QObject):
         """Execute the tasks that were added to the stack."""
         for task_uuid4, (task, args, kargs) in self._tasks.items():
             if task is not None:
-                method_to_exec = getattr(self, '_' + task)
+                method_to_exec = self._get_method(task)
                 returned_values = method_to_exec(*args, **kargs)
             else:
                 returned_values = args
             self.sig_task_completed.emit(task_uuid4, returned_values)
-        self._tasks = OrderedDict()
+
+        self._tasks.clear()
         self.thread().quit()
 
 
@@ -63,8 +78,8 @@ class TaskManagerBase(QObject):
 
         self._worker = None
 
-        self._task_callbacks = {}
-        self._task_data = {}
+        self._task_callbacks: dict[uuid.UUID, Callable] = {}
+        self._task_data: dict[uuid.UUID, tuple[str, tuple, dict]] = {}
 
         self._running_tasks = []
         self._queued_tasks = []
@@ -79,6 +94,12 @@ class TaskManagerBase(QObject):
         # as the worker becomes available.
         #
         # Running tasks are tasks that are being executed by the worker.
+
+    @property
+    def is_running(self):
+        return not (len(self._running_tasks) == 0 and
+                    len(self._pending_tasks) == 0 and
+                    not self._thread.isRunning())
 
     def run_tasks(
             self, callback: Callable = None, returned_values: tuple = None):
@@ -98,7 +119,7 @@ class TaskManagerBase(QObject):
             self.add_task(None, callback, returned_values)
         self._run_tasks()
 
-    def add_task(self, task: Callable, callback: Callable, *args, **kargs):
+    def add_task(self, task: str, callback: Callable, *args, **kargs):
         """Add a new task at the end of the queued tasks stack."""
         self._add_task(task, callback, *args, **kargs)
 
@@ -130,7 +151,7 @@ class TaskManagerBase(QObject):
             try:
                 self._task_callbacks[task_uuid4](*returned_values)
             except TypeError:
-                # This means there is none 'returned_values'.
+                # This means there is 'returned_values' is None.
                 self._task_callbacks[task_uuid4]()
 
         # Clean up completed task.
@@ -152,7 +173,7 @@ class TaskManagerBase(QObject):
         if task_uuid4 in self._running_tasks:
             self._running_tasks.remove(task_uuid4)
 
-    def _add_task(self, task: Callable, callback: Callable, *args, **kargs):
+    def _add_task(self, task: str, callback: Callable, *args, **kargs):
         """Add a new task at the end of the stack of queued tasks."""
         task_uuid4 = uuid.uuid4()
         self._task_callbacks[task_uuid4] = callback
@@ -175,15 +196,14 @@ class TaskManagerBase(QObject):
             if self.verbose:
                 print('Executing {} pending tasks...'.format(
                     len(self._pending_tasks)))
+
             # Even though the worker has executed all its tasks,
             # we may still need to wait a little for it to stop properly.
-            i = 0
-            while self._thread.isRunning():
-                sleep(0.1)
-                i += 1
-                if i > 100:
-                    print("Error: unable to stop {}'s working thread.".format(
-                        self.__class__.__name__))
+            try:
+                qtwait(lambda: not self._thread.isRunning(), timeout=10)
+            except TimeoutError:
+                print("Error: unable to stop {}'s working thread.".format(
+                    self.__class__.__name__))
 
             self._running_tasks = self._pending_tasks.copy()
             self._pending_tasks = []
