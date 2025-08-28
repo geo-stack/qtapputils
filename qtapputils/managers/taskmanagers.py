@@ -7,7 +7,7 @@
 # Licensed under the terms of the MIT License.
 # -----------------------------------------------------------------------------
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Any
 if TYPE_CHECKING:
     from uuid import UUID
 
@@ -25,15 +25,28 @@ class WorkerBase(QObject):
     A worker to execute tasks without blocking the GUI.
     """
     sig_task_completed = Signal(object, object)
+    sig_task_error = Signal(object, Exception)
 
     def __init__(self):
         super().__init__()
-        self._tasks = OrderedDict()
+        self._tasks: OrderedDict[Any, tuple[str, tuple, dict]] = OrderedDict()
 
-    def add_task(self, task_uuid4, task, *args, **kargs):
+    def _get_method(self, task: str):
+        # Try direct, then fallback to underscore-prefixed (for backward
+        # compatibility with older version of qtapputils).
+        return getattr(self, task, getattr(self, '_' + task))
+
+    def add_task(self, task_uuid4: Any, task: str, *args, **kargs):
         """
-        Add a task to the stack that will be executed when the thread of
-        this worker is started.
+        Add a task to the stack.
+        Parameters
+        ----------
+        task_uuid4 : UUID or any hashable
+            Unique ID for the task.
+        task : str
+            The name of the method to execute.
+        *args, **kargs :
+            Arguments for the task.
         """
         self._tasks[task_uuid4] = (task, args, kargs)
 
@@ -41,12 +54,17 @@ class WorkerBase(QObject):
         """Execute the tasks that were added to the stack."""
         for task_uuid4, (task, args, kargs) in self._tasks.items():
             if task is not None:
-                method_to_exec = getattr(self, '_' + task)
-                returned_values = method_to_exec(*args, **kargs)
+                method_to_exec = self._get_method(task)
+                try:
+                    returned_values = method_to_exec(*args, **kargs)
+                except Exception as e:
+                    self.sig_task_error.emit(task_uuid4, e)
+                else:
+                    self.sig_task_completed.emit(task_uuid4, returned_values)
             else:
-                returned_values = args
-            self.sig_task_completed.emit(task_uuid4, returned_values)
-        self._tasks = OrderedDict()
+                self.sig_task_completed.emit(task_uuid4, args)
+
+        self._tasks.clear()
         self.thread().quit()
 
 
