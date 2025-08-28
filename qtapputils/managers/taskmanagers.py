@@ -98,6 +98,10 @@ class TaskManagerBase(QObject):
         #
         # Running tasks are tasks that are being executed by the worker.
 
+    @property
+    def is_running(self):
+        return len(self._running_tasks + self._pending_tasks) != 0
+
     def run_tasks(
             self, callback: Callable = None, returned_values: tuple = None):
         """
