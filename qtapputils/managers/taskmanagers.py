@@ -97,7 +97,9 @@ class TaskManagerBase(QObject):
 
     @property
     def is_running(self):
-        return len(self._running_tasks + self._pending_tasks) != 0
+        return not (len(self._running_tasks) == 0 and
+                    len(self._pending_tasks) == 0 and
+                    not self._thread.isRunning())
 
     def run_tasks(
             self, callback: Callable = None, returned_values: tuple = None):
