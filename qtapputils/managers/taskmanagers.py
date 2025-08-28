@@ -78,8 +78,8 @@ class TaskManagerBase(QObject):
 
         self._worker = None
 
-        self._task_callbacks: dict[uuid.UUID, Callable]
-        self._task_data: dict[uuid.UUID, tuple[str, tuple, dict]]
+        self._task_callbacks: dict[uuid.UUID, Callable] = {}
+        self._task_data: dict[uuid.UUID, tuple[str, tuple, dict]] = {}
 
         self._running_tasks = []
         self._queued_tasks = []
