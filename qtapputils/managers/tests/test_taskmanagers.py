@@ -53,7 +53,7 @@ def task_manager(worker, qtbot):
     yield task_manager
 
     # We wait for the manager's thread to fully stop to avoid segfault error.
-    qtbot.waitUntil(lambda: not task_manager._thread.isRunning())
+    qtbot.waitUntil(lambda: not task_manager.is_running)
 
 
 @pytest.fixture
@@ -63,7 +63,7 @@ def lifo_task_manager(worker, qtbot):
     yield task_manager
 
     # We wait for the manager's thread to fully stop to avoid segfault error.
-    qtbot.waitUntil(lambda: not task_manager._thread.isRunning())
+    qtbot.waitUntil(lambda: not task_manager.is_running)
 
 
 # =============================================================================
