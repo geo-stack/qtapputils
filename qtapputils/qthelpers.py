@@ -27,7 +27,7 @@ from qtpy.QtGui import QKeySequence, QColor, QPalette
 from qtpy.QtCore import QByteArray, Qt, QSize, QEventLoop, QTimer
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction,
-    QToolBar)
+    QToolBar, QStyleOption)
 
 
 def qbytearray_to_hexstate(qba):
@@ -45,7 +45,7 @@ def get_qcolor(color: QColor | tuple | list | str) -> QColor:
     Return a QColor from various input formats:
       - QColor instance (returned as is)
       - RGB or RGBA tuple/list of ints (e.g. (r,g,b) or (r,g,b,a))
-      - RGB Hex string (e.g. '#FFAA00')
+      - RGB Hex string (e.g. '#FFAA00') or QPalette color role (e.g. 'window')
       - Qt color name string (e.g. 'red', 'blue', 'lightgray')
 
     Parameters
@@ -76,6 +76,12 @@ def get_qcolor(color: QColor | tuple | list | str) -> QColor:
         # Accept hex (with '#') or color name
         if color.startswith('#') or color in QColor.colorNames():
             return QColor(color)
+
+        try:
+            return getattr(QStyleOption().palette, color)().color()
+        except AttributeError:
+            pass
+
         raise ValueError(f"Unknown color string: {color!r}")
 
     raise ValueError(f"Cannot convert argument to QColor: {color!r}")
