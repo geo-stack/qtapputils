@@ -91,7 +91,7 @@ class PathBoxWidget(QFrame):
                 self, self._caption, self.directory(), self.filters)
         elif self._path_type == 'getSaveFileName':
             path, ext = QFileDialog.getSaveFileName(
-                self, self._caption, self.directory())
+                self, self._caption, self.directory(), self.filters)
 
         if path:
             self.set_path(path)
