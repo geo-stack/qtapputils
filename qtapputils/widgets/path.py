@@ -75,7 +75,7 @@ class PathBoxWidget(QFrame):
 
     def set_path(self, path: str):
         """Set the path to the specified value."""
-        if path != self.path:
+        if path == self.path:
             return
 
         self.path_lineedit.setText(path)
