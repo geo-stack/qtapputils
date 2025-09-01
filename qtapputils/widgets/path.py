@@ -31,7 +31,7 @@ class PathBoxWidget(QFrame):
                  filters: str = None, gettext: Callable = None):
         super().__init__(parent)
 
-        _ = lambda x: x if gettext is None else gettext
+        _ = gettext if gettext else lambda x: x
         if path_type == 'getExistingDirectory':
             self._caption = _('Select Existing Directory')
         elif path_type == 'getOpenFileName':
@@ -75,6 +75,9 @@ class PathBoxWidget(QFrame):
 
     def set_path(self, path: str):
         """Set the path to the specified value."""
+        if path != self.path:
+            return
+
         self.path_lineedit.setText(path)
         self.path_lineedit.setToolTip(path)
         self.set_directory(osp.dirname(path))
