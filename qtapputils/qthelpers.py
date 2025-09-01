@@ -10,7 +10,7 @@
 """Qt utilities"""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Any, Optional
 if TYPE_CHECKING:
     from qtpy.QtGui import QIcon
     from qtapputils.widgets.waitingspinner import WaitingSpinner
@@ -23,11 +23,11 @@ import time
 from math import pi
 
 # ---- Third party imports
-from qtpy.QtGui import QKeySequence
+from qtpy.QtGui import QKeySequence, QColor, QPalette
 from qtpy.QtCore import QByteArray, Qt, QSize, QEventLoop, QTimer
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction,
-    QToolBar)
+    QToolBar, QStyleOption)
 
 
 def qbytearray_to_hexstate(qba):
@@ -38,6 +38,85 @@ def qbytearray_to_hexstate(qba):
 def hexstate_to_qbytearray(hexstate):
     """Convert a str hexstate to a QByteArray object."""
     return QByteArray().fromHex(str(hexstate).encode('utf-8'))
+
+
+def get_qcolor(color: QColor | tuple | list | str) -> QColor:
+    """
+    Return a QColor from various input formats:
+      - QColor instance (returned as is)
+      - RGB or RGBA tuple/list of ints (e.g. (r,g,b) or (r,g,b,a))
+      - RGB Hex string (e.g. '#FFAA00') or QPalette color role (e.g. 'window')
+      - Qt color name string (e.g. 'red', 'blue', 'lightgray')
+
+    Parameters
+    ----------
+    color : QColor, tuple/list, or str
+        The color specification.
+
+    Returns
+    -------
+    QColor
+        The corresponding QColor object.
+
+    Raises
+    ------
+    ValueError
+        If the color argument is not valid.
+    """
+    # QColor instance
+    if isinstance(color, QColor):
+        return color
+
+    # Tuple/list RGB(A)
+    if isinstance(color, (tuple, list)):
+        return QColor(*color)
+
+    # String: hex code or color name
+    if isinstance(color, str):
+        # Accept hex (with '#') or color name
+        if color.startswith('#') or color in QColor.colorNames():
+            return QColor(color)
+
+        try:
+            return getattr(QStyleOption().palette, color)().color()
+        except AttributeError:
+            pass
+
+        raise ValueError(f"Unknown color string: {color!r}")
+
+    raise ValueError(f"Cannot convert argument to QColor: {color!r}")
+
+
+def set_widget_palette(
+        widget: QWidget,
+        bgcolor: Optional[Any] = None,
+        fgcolor: Optional[Any] = None):
+    """
+    Set the background and foreground color of a QWidget.
+
+    If colors are None, keeps the current palette value. Also enables
+    autoFillBackground for proper background rendering on most widgets.
+
+    Parameters
+    ----------
+    widget : QWidget
+        The widget whose palette will be set.
+    bgcolor : optional
+        Background color specification (QColor, tuple/list, or str).
+    fgcolor : optional
+        Foreground color specification (QColor, tuple/list, or str).
+    """
+    palette = widget.palette()
+    if bgcolor is not None:
+        palette.setColor(widget.backgroundRole(), get_qcolor(bgcolor))
+
+        # Ensure background fills for most widgets.
+        widget.setAutoFillBackground(True)
+
+    if fgcolor is not None:
+        palette.setColor(widget.foregroundRole(), get_qcolor(fgcolor))
+
+    widget.setPalette(palette)
 
 
 def create_mainwindow_toolbar(
