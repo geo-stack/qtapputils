@@ -35,7 +35,11 @@ class WorkerBase(QObject):
     def _get_method(self, task: str):
         # Try direct, then fallback to underscore-prefixed (for backward
         # compatibility with older version of qtapputils).
-        return getattr(self, task, getattr(self, '_' + task))
+        try:
+            method = getattr(self, task)
+        except AttributeError:
+            method = getattr(self, '_' + task)
+        return method
 
     def add_task(self, task_uuid4: Any, task: str, *args, **kargs):
         """

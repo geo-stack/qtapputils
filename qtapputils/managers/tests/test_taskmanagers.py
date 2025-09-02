@@ -41,7 +41,7 @@ def worker(DATA):
         DATA[index] = value
 
     worker = WorkerBase()
-    worker._get_something = _get_something
+    worker.get_something = _get_something
     worker._set_something = _set_something
     return worker
 
