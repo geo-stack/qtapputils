@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 # ---- Standard imports
 from collections import OrderedDict
 import uuid
+from time import sleep
 
 # ---- Third party imports
 from qtpy.QtCore import QObject, QThread, Signal
@@ -203,11 +204,13 @@ class TaskManagerBase(QObject):
 
             # Even though the worker has executed all its tasks,
             # we may still need to wait a little for it to stop properly.
-            try:
-                qtwait(lambda: not self._thread.isRunning(), timeout=10)
-            except TimeoutError:
-                print("Error: unable to stop {}'s working thread.".format(
-                    self.__class__.__name__))
+            i = 0
+            while self._thread.isRunning():
+                sleep(0.1)
+                i += 1
+                if i > 100:
+                    print("Error: unable to stop {}'s working thread.".format(
+                        self.__class__.__name__))
 
             self._running_tasks = self._pending_tasks.copy()
             self._pending_tasks = []
