@@ -67,6 +67,8 @@ class WorkerBase(QObject):
             self.sig_task_completed.emit(task_uuid4, returned_values)
 
         self._tasks.clear()
+        self.thread().quit()
+        self.thread().wait()
 
 
 class TaskManagerBase(QObject):
@@ -75,7 +77,6 @@ class TaskManagerBase(QObject):
     """
     sig_run_tasks_started = Signal()
     sig_run_tasks_finished = Signal()
-    sig_run_tasks = Signal()
 
     def __init__(self, verbose: bool = False):
         super().__init__()
@@ -133,15 +134,12 @@ class TaskManagerBase(QObject):
     def set_worker(self, worker: WorkerBase):
         """"Install the provided worker on this manager"""
         self._thread = QThread()
-
         self._worker = worker
-        self._worker.moveToThread(self._thread)
-        self._worker.sig_task_completed.connect(
-            self._handle_task_completed, Qt.QueuedConnection)
-        self.sig_run_tasks.connect(
-            self._worker.run_tasks, Qt.QueuedConnection)
 
-        self._thread.start()
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run_tasks)
+
+        self._worker.sig_task_completed.connect(self._handle_task_completed)
 
     # ---- Private API
     def _handle_task_completed(
@@ -203,19 +201,24 @@ class TaskManagerBase(QObject):
                 print('Executing {} pending tasks...'.format(
                     len(self._pending_tasks)))
 
+            # Even though the worker has executed all its tasks,
+            # we may still need to wait a little for it to stop properly.
+            while self._thread.isRunning():
+                print("Waiting {}'s working thread to quit..."
+                      .format(self.__class__.__name__))
+                try:
+                    qtwait(lambda: not self._thread.isRunning(), timeout=10)
+                except TimeoutError:
+                    print("Error: unable to stop {}'s working thread."
+                          .format(self.__class__.__name__))
+
             self._running_tasks = self._pending_tasks.copy()
             self._pending_tasks = []
             for task_uuid4 in self._running_tasks:
                 task, args, kargs = self._task_data[task_uuid4]
                 self._worker.add_task(task_uuid4, task, *args, **kargs)
 
-            self.sig_run_tasks.emit()
-
-    def close(self):
-        if hasattr(self, "_thread"):
-            qtwait(lambda: not self.is_running)
-            self._thread.quit()
-            self._thread.wait()
+            self._thread.start()
 
 
 class LIFOTaskManager(TaskManagerBase):
