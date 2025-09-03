@@ -159,14 +159,19 @@ class TaskManagerBase(QObject):
         # Clean up completed task.
         self._cleanup_task(task_uuid4)
 
-        # Execute pending tasks if worker is idle.
-        if len(self._running_tasks) == 0:
-            if len(self._pending_tasks) > 0:
-                self._run_pending_tasks()
-            else:
-                if self.verbose:
-                    print('All pending tasks were executed.')
-                self.sig_run_tasks_finished.emit()
+        if len(self._running_tasks) > 0:
+            return
+
+        # Tells the thread's event loop to exit since all running
+        # tasks were completed.
+        self._thread.quit()
+
+        if len(self._pending_tasks) > 0:
+            self._run_pending_tasks()
+        else:
+            if self.verbose:
+                print('All pending tasks were executed.')
+            self.sig_run_tasks_finished.emit()
 
     def _cleanup_task(self, task_uuid4: uuid.UUID):
         """Cleanup task associated with the specified UUID."""
