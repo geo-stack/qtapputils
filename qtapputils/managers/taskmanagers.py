@@ -28,12 +28,10 @@ class WorkerBase(QObject):
     A worker to execute tasks without blocking the GUI.
     """
     sig_task_completed = Signal(object, object)
-    sig_run_tasks = Signal()
 
     def __init__(self):
         super().__init__()
         self._tasks: OrderedDict[Any, tuple[str, tuple, dict]] = OrderedDict()
-        self.sig_run_tasks.connect(self.run_tasks, Qt.QueuedConnection)
 
     def _get_method(self, task: str):
         # Try direct, then fallback to underscore-prefixed (for backward
@@ -77,6 +75,7 @@ class TaskManagerBase(QObject):
     """
     sig_run_tasks_started = Signal()
     sig_run_tasks_finished = Signal()
+    sig_run_tasks = Signal()
 
     def __init__(self, verbose: bool = False):
         super().__init__()
@@ -138,8 +137,9 @@ class TaskManagerBase(QObject):
         self._worker = worker
         self._worker.moveToThread(self._thread)
         self._worker.sig_task_completed.connect(
-            self._handle_task_completed, Qt.QueuedConnection
-            )
+            self._handle_task_completed, Qt.QueuedConnection)
+        self.sig_run_tasks.connect(
+            self._worker.run_tasks, Qt.QueuedConnection)
 
         self._thread.start()
 
@@ -209,7 +209,7 @@ class TaskManagerBase(QObject):
                 task, args, kargs = self._task_data[task_uuid4]
                 self._worker.add_task(task_uuid4, task, *args, **kargs)
 
-            self._worker.sig_run_tasks.emit()
+            self.sig_run_tasks.emit()
 
     def close(self):
         if hasattr(self, "_thread"):
