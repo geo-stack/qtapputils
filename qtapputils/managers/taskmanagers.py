@@ -17,7 +17,7 @@ import uuid
 from time import sleep
 
 # ---- Third party imports
-from qtpy.QtCore import QObject, QThread, Signal
+from qtpy.QtCore import QObject, QThread, Signal, Qt
 
 # ---- Local imports
 from qtapputils.qthelpers import qtwait
@@ -28,10 +28,12 @@ class WorkerBase(QObject):
     A worker to execute tasks without blocking the GUI.
     """
     sig_task_completed = Signal(object, object)
+    sig_run_tasks = Signal()
 
     def __init__(self):
         super().__init__()
         self._tasks: OrderedDict[Any, tuple[str, tuple, dict]] = OrderedDict()
+        self.sig_run_tasks.connect(self.run_tasks, Qt.QueuedConnection)
 
     def _get_method(self, task: str):
         # Try direct, then fallback to underscore-prefixed (for backward
@@ -67,7 +69,6 @@ class WorkerBase(QObject):
             self.sig_task_completed.emit(task_uuid4, returned_values)
 
         self._tasks.clear()
-        self.thread().quit()
 
 
 class TaskManagerBase(QObject):
@@ -102,9 +103,7 @@ class TaskManagerBase(QObject):
 
     @property
     def is_running(self):
-        return not (len(self._running_tasks) == 0 and
-                    len(self._pending_tasks) == 0 and
-                    not self._thread.isRunning())
+        return len(self._running_tasks + self._pending_tasks) > 0
 
     def run_tasks(
             self, callback: Callable = None, returned_values: tuple = None):
@@ -134,13 +133,15 @@ class TaskManagerBase(QObject):
 
     def set_worker(self, worker: WorkerBase):
         """"Install the provided worker on this manager"""
-        self._worker = worker
         self._thread = QThread()
-        self._worker.moveToThread(self._thread)
-        self._thread.started.connect(self._worker.run_tasks)
 
-        # Connect the worker signals to handlers.
-        self._worker.sig_task_completed.connect(self._handle_task_completed)
+        self._worker = worker
+        self._worker.moveToThread(self._thread)
+        self._worker.sig_task_completed.connect(
+            self._handle_task_completed, Qt.QueuedConnection
+            )
+
+        self._thread.start()
 
     # ---- Private API
     def _handle_task_completed(
@@ -202,22 +203,19 @@ class TaskManagerBase(QObject):
                 print('Executing {} pending tasks...'.format(
                     len(self._pending_tasks)))
 
-            # Even though the worker has executed all its tasks,
-            # we may still need to wait a little for it to stop properly.
-            i = 0
-            while self._thread.isRunning():
-                sleep(0.1)
-                i += 1
-                if i > 100:
-                    print("Error: unable to stop {}'s working thread.".format(
-                        self.__class__.__name__))
-
             self._running_tasks = self._pending_tasks.copy()
             self._pending_tasks = []
             for task_uuid4 in self._running_tasks:
                 task, args, kargs = self._task_data[task_uuid4]
                 self._worker.add_task(task_uuid4, task, *args, **kargs)
-            self._thread.start()
+
+            self._worker.sig_run_tasks.emit()
+
+    def close(self):
+        if hasattr(self, "_thread"):
+            qtwait(lambda: not self.is_running)
+            self._thread.quit()
+            self._thread.wait()
 
 
 class LIFOTaskManager(TaskManagerBase):
