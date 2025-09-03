@@ -199,21 +199,33 @@ class TaskManagerBase(QObject):
 
     def _run_pending_tasks(self):
         """Execute all pending tasks."""
-        if len(self._running_tasks) == 0 and len(self._pending_tasks) > 0:
-            if self.verbose:
-                print('Executing {} pending tasks...'.format(
-                    len(self._pending_tasks)))
+        # If the worker is busy, postpone running pending tasks. Pending tasks
+        # will be run when all running tasks are done running.
+        if len(self._running_tasks) > 0:
+            return
 
-            self._thread.quit()
-            self._thread.wait()
+        # If there are no pending tasks, nothing to do.
+        if len(self._pending_tasks) == 0:
+            return
 
-            self._running_tasks = self._pending_tasks.copy()
-            self._pending_tasks = []
-            for task_uuid4 in self._running_tasks:
-                task, args, kargs = self._task_data[task_uuid4]
-                self._worker.add_task(task_uuid4, task, *args, **kargs)
+        if self.verbose:
+            print(f'Executing {len(self._pending_tasks)} pending tasks...')
 
-            self._thread.start()
+        # Make sur the thread has finished execution before proceeding
+        # with pending tasks.
+        self._thread.wait()
+
+        # Move all pending tasks to running tasks.
+        self._running_tasks = self._pending_tasks.copy()
+        self._pending_tasks = []
+
+        # Queue each running task for the worker.
+        for task_uuid4 in self._running_tasks:
+            task, args, kargs = self._task_data[task_uuid4]
+            self._worker.add_task(task_uuid4, task, *args, **kargs)
+
+        # Start the thread so the worker can process the tasks.
+        self._thread.start()
 
 
 class LIFOTaskManager(TaskManagerBase):
