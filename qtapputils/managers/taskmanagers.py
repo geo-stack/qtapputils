@@ -67,8 +67,6 @@ class WorkerBase(QObject):
             self.sig_task_completed.emit(task_uuid4, returned_values)
 
         self._tasks.clear()
-        self.thread().quit()
-        self.thread().wait()
 
 
 class TaskManagerBase(QObject):
@@ -201,16 +199,8 @@ class TaskManagerBase(QObject):
                 print('Executing {} pending tasks...'.format(
                     len(self._pending_tasks)))
 
-            # Even though the worker has executed all its tasks,
-            # we may still need to wait a little for it to stop properly.
-            while self._thread.isRunning():
-                print("Waiting {}'s working thread to quit..."
-                      .format(self.__class__.__name__))
-                try:
-                    qtwait(lambda: not self._thread.isRunning(), timeout=10)
-                except TimeoutError:
-                    print("Error: unable to stop {}'s working thread."
-                          .format(self.__class__.__name__))
+            self._thread.quit()
+            self._thread.wait()
 
             self._running_tasks = self._pending_tasks.copy()
             self._pending_tasks = []
