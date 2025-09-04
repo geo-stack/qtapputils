@@ -148,27 +148,35 @@ class TaskManagerBase(QObject):
         This is the ONLY slot that should be called after a task is
         completed by the worker.
         """
-        # Run the callback associated with the specified task UUID if any.
-        if self._task_callbacks[task_uuid4] is not None:
+        # Execute the callback associated with this task (if one exists).
+        callback = self._task_callbacks.get(task_uuid4)
+        if callback is not None:
             try:
-                self._task_callbacks[task_uuid4](*returned_values)
+                callback(*returned_values)
             except TypeError:
                 # This means there is 'returned_values' is None.
-                self._task_callbacks[task_uuid4]()
+                callback()
 
-        # Clean up completed task.
+        # Remove references to the completed task from internal structures.
         self._cleanup_task(task_uuid4)
 
+        # If there are still running tasks, do not proceed further.
         if len(self._running_tasks) > 0:
             return
 
-        # Tells the thread's event loop to exit since all running
-        # tasks were completed.
+        # We quit the thread here to ensure all resources are cleaned up
+        # and to prevent issues with lingering events or stale object
+        # references. This makes the worker lifecycle simpler and more robust,
+        # especially in PyQt/PySide, and avoids subtle bugs that can arise
+        # from reusing threads across multiple batches.
         self._thread.quit()
 
+        # If there are pending tasks, begin processing them.
         if len(self._pending_tasks) > 0:
             self._run_pending_tasks()
         else:
+            # No pending tasks remain; notify listeners that
+            # all tasks are finished.
             if self.verbose:
                 print('All pending tasks were executed.')
             self.sig_run_tasks_finished.emit()
@@ -199,8 +207,8 @@ class TaskManagerBase(QObject):
 
     def _run_pending_tasks(self):
         """Execute all pending tasks."""
-        # If the worker is busy, postpone running pending tasks. Pending tasks
-        # will be run when all running tasks are done running.
+        # If the worker is currently processing tasks, defer execution of
+        # pending tasks.
         if len(self._running_tasks) > 0:
             return
 
@@ -216,11 +224,11 @@ class TaskManagerBase(QObject):
         # cause errors.
         qtwait(lambda: self._tread.isRunning())
 
-        # Move all pending tasks to running tasks.
+        # Move all pending tasks to the running tasks queue.
         self._running_tasks = self._pending_tasks.copy()
         self._pending_tasks = []
 
-        # Queue each running task for the worker.
+        # Add each running task to the worker's queue.
         for task_uuid4 in self._running_tasks:
             task, args, kargs = self._task_data[task_uuid4]
             self._worker.add_task(task_uuid4, task, *args, **kargs)
