@@ -52,7 +52,8 @@ def task_manager(worker, qtbot):
     task_manager.set_worker(worker)
     yield task_manager
 
-    task_manager.close()
+    task_manager.wait()
+
     assert not task_manager.is_running
     assert not task_manager._thread.isRunning()
 
@@ -63,7 +64,8 @@ def lifo_task_manager(worker, qtbot):
     task_manager.set_worker(worker)
     yield task_manager
 
-    task_manager.close()
+    task_manager.wait()
+
     assert not task_manager.is_running
     assert not task_manager._thread.isRunning()
 
