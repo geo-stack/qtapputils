@@ -103,6 +103,16 @@ class TaskManagerBase(QObject):
     def is_running(self):
         return len(self._running_tasks + self._pending_tasks) > 0
 
+    def wait(self):
+        """
+        Waits for completion of all running and pending tasks, and for the
+        worker thread to fully exit its event loop.
+
+        Note: This does not block the main GUI event loop, allowing the UI to
+        remain responsive while waiting.
+        """
+        qtwait(lambda: not self.is_running and not self._thread.isRunning())
+
     def run_tasks(
             self, callback: Callable = None, returned_values: tuple = None):
         """
