@@ -211,9 +211,10 @@ class TaskManagerBase(QObject):
         if self.verbose:
             print(f'Executing {len(self._pending_tasks)} pending tasks...')
 
-        # Make sur the thread has finished execution before proceeding
-        # with pending tasks.
-        self._thread.wait()
+        # Ensure the thread is not running before starting new tasks.
+        # This prevents starting a thread that is already active, which can
+        # cause errors.
+        qtwait(lambda: self._tread.isRunning())
 
         # Move all pending tasks to running tasks.
         self._running_tasks = self._pending_tasks.copy()
