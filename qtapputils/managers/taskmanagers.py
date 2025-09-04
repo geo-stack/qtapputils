@@ -232,7 +232,8 @@ class TaskManagerBase(QObject):
         # Ensure the thread is not running before starting new tasks.
         # This prevents starting a thread that is already active, which can
         # cause errors.
-        qtwait(lambda: self._tread.isRunning())
+        if self._thread.isRunning():
+            qtwait(lambda: not self._thread.isRunning())
 
         # Move all pending tasks to the running tasks queue.
         self._running_tasks = self._pending_tasks.copy()
