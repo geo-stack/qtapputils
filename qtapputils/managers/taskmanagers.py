@@ -81,6 +81,7 @@ class TaskManagerBase(QObject):
         self.verbose = verbose
 
         self._worker = None
+        self._thread_is_quitting = False
 
         self._task_callbacks: dict[uuid.UUID, Callable] = {}
         self._task_data: dict[uuid.UUID, tuple[str, tuple, dict]] = {}
@@ -146,6 +147,7 @@ class TaskManagerBase(QObject):
 
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run_tasks)
+        self._thread.finished.connect(self._handle_thread_finished)
 
         self._worker.sig_task_completed.connect(self._handle_task_completed)
 
@@ -170,16 +172,24 @@ class TaskManagerBase(QObject):
         # Remove references to the completed task from internal structures.
         self._cleanup_task(task_uuid4)
 
-        # If there are still running tasks, do not proceed further.
-        if len(self._running_tasks) > 0:
-            return
+        # When all running task are completed, we quit the thread to ensure
+        # all resources are cleaned up and to prevent issues with lingering
+        # events or stale object references. This makes the worker lifecycle
+        # more robust, especially in PyQt/PySide, and avoids subtle bugs that
+        # can arise from reusing threads across multiple batches.
+        if len(self._running_tasks) == 0:
+            self._thread_is_quitting = True
+            self._thread.quit()
+            # NOTE: After 'quit()' is called, the thread's event loop exits
+            # after processing pending events, and the 'QThread.finished'
+            # signal is emitted. This triggers '_handle_thread_finished()',
+            # which manages pending tasks or signals that all work is done.
 
-        # We quit the thread here to ensure all resources are cleaned up
-        # and to prevent issues with lingering events or stale object
-        # references. This makes the worker lifecycle simpler and more robust,
-        # especially in PyQt/PySide, and avoids subtle bugs that can arise
-        # from reusing threads across multiple batches.
-        self._thread.quit()
+    def _handle_thread_finished(self):
+        """
+        Handle when the thread event loop is shut down.
+        """
+        self._thread_is_quitting = False
 
         # If there are pending tasks, begin processing them.
         if len(self._pending_tasks) > 0:
@@ -226,14 +236,11 @@ class TaskManagerBase(QObject):
         if len(self._pending_tasks) == 0:
             return
 
+        if self._thread_is_quitting:
+            return
+
         if self.verbose:
             print(f'Executing {len(self._pending_tasks)} pending tasks...')
-
-        # Ensure the thread is not running before starting new tasks.
-        # This prevents starting a thread that is already active, which can
-        # cause errors.
-        if self._thread.isRunning():
-            qtwait(lambda: not self._thread.isRunning())
 
         # Move all pending tasks to the running tasks queue.
         self._running_tasks = self._pending_tasks.copy()
