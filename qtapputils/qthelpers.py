@@ -349,21 +349,35 @@ def block_signals(widget):
         widget.blockSignals(was_blocked)
 
 
-def qtwait(condition, timeout=None, check_interval=50, error_message=None):
+def qtwait(
+        condition: Callable[[], bool],
+        timeout: float = None,
+        check_interval: int = 50,
+        error_message: str = None,
+        return_on_timeout: bool = False,
+        stopper: Optional[Callable[[], bool]] = None,
+        debug: bool = False,
+        ):
     """
-    Waits in a Qt event loop until a given condition becomes True,
-    or a timeout is reached.
+    Wait in the Qt main thread event loop for a condition.
 
     Parameters
     ----------
     condition : callable
-        A zero-argument function or lambda returning a boolean.
+        A zero-argument function returning a boolean.
     timeout : float or None, optional
         Maximum wait time in seconds. If None, waits indefinitely.
     check_interval : int, optional
         Interval (in milliseconds) between checks. Default is 50 ms.
     error_message : str or None, optional
-        Custom error message to raise if timeout occurs.
+        Custom error message on timeout.
+    return_on_timeout : bool
+        Return False instead of raising on timeout.
+    stopper : callable or None
+        Callable returning True to abort waiting early.
+    debug : bool
+        If True, prints debug logs.
+
 
     Raises
     ------
@@ -383,10 +397,19 @@ def qtwait(condition, timeout=None, check_interval=50, error_message=None):
     start_time = time.monotonic()
 
     def check_condition():
-        elapsed_time = time.monotonic() - start_time
+        elapsed = time.monotonic() - start_time
+        if debug:
+            print(f"[qtwait] Checking condition at {elapsed:.3f}s")
         if condition():
+            if debug:
+                print("[qtwait] Condition met, exiting event loop.")
             loop.quit()
-        elif timeout is not None and elapsed_time >= timeout:
+        elif stopper and stopper():
+            if debug:
+                print("[qtwait] Stopper function triggered, "
+                      "exiting event loop.")
+            loop.quit()
+        elif timeout is not None and elapsed >= timeout:
             loop.quit()
 
     timer = QTimer()
@@ -399,6 +422,16 @@ def qtwait(condition, timeout=None, check_interval=50, error_message=None):
     finally:
         timer.stop()
 
+    elapsed = time.monotonic() - start_time
+
     if not condition():
-        raise TimeoutError(
-            error_message or "Condition not met within timeout.")
+        if timeout is not None and elapsed >= timeout:
+            if return_on_timeout:
+                return False
+            raise TimeoutError(
+                error_message or "Condition not met within timeout.")
+        if stopper and stopper():
+            if return_on_timeout:
+                return False
+            raise RuntimeError("qtwait was stopped by the stopper function.")
+    return True
