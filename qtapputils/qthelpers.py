@@ -23,8 +23,9 @@ import time
 from math import pi
 
 # ---- Third party imports
-from qtpy.QtGui import QKeySequence, QColor, QPalette
-from qtpy.QtCore import QByteArray, Qt, QSize, QEventLoop, QTimer
+from qtpy.QtGui import QKeySequence, QColor
+from qtpy.QtCore import (
+    QByteArray, Qt, QSize, QEventLoop, QTimer, QThread, QCoreApplication)
 from qtpy.QtWidgets import (
     QWidget, QSizePolicy, QToolButton, QApplication, QStyleFactory, QAction,
     QToolBar, QStyleOption)
@@ -369,6 +370,15 @@ def qtwait(condition, timeout=None, check_interval=50, error_message=None):
     TimeoutError
         If the condition does not become True within the timeout.
     """
+    is_in_main_thread = (
+        QThread.currentThread() == QCoreApplication.instance().thread()
+        )
+
+    if not is_in_main_thread:
+        raise RuntimeError(
+            "qtwait can only be called from the Qt main (GUI) thread."
+            )
+
     loop = QEventLoop()
     start_time = time.monotonic()
 
