@@ -384,7 +384,10 @@ def qtwait(condition, timeout=None, check_interval=50, error_message=None):
     timer.start(check_interval)
 
     check_condition()
-    loop.exec_()
+    try:
+        loop.exec_()
+    finally:
+        timer.stop()
 
     if not condition():
         raise TimeoutError(
