@@ -22,7 +22,7 @@ from qtpy.QtWidgets import QMessageBox, QFileDialog, QWidget
 
 class SaveFileManager(QObject):
     def __init__(self, namefilters: dict, onsave: Callable,
-                 parent: QWidget = None, atomic: str = None):
+                 parent: QWidget = None, atomic: bool = False):
         """
         A manager to save files.
 
@@ -55,6 +55,24 @@ class SaveFileManager(QObject):
         self.namefilters = namefilters
         self.onsave = onsave
         self.atomic = atomic
+
+    def _cleanup_tempfile(self, tempname):
+        if osp.exists(tempname):
+            try:
+                os.remove(tempname)
+            except Exception:
+                pass
+
+    def _get_valid_tempname(self, filename):
+        destdir = osp.dirname(filename)
+        while True:
+            tempname = osp.join(
+                destdir,
+                f'.temp_{str(uuid.uuid4())[:8]}_'
+                f'{osp.basename(filename)}'
+                )
+            if not osp.exists(tempname):
+                return tempname
 
     def _get_new_save_filename(self, filename):
         root, ext = osp.splitext(filename)
@@ -105,42 +123,31 @@ class SaveFileManager(QObject):
 
         if self.atomic:
             while True:
-
-                destdir = osp.dirname(filename)
-                while True:
-                    tempname = osp.join(
-                        destdir,
-                        f'.temp_{str(uuid.uuid4())[:8]}_'
-                        f'{osp.basename(filename)}'
-                        )
-                    if not osp.exists(tempname):
-                        break
-
+                tempname = self._get_valid_tempname(filename)
                 try:
                     self.onsave(tempname, *args, **kwargs)
-                    os.replace(tempname, filename)
-                    return filename
-                except PermissionError:
-                    QMessageBox.warning(
-                        self.parent, 'File in Use',
-                        file_in_use_msg, QMessageBox.Ok)
+                    try:
+                        os.replace(tempname, filename)
+                        return filename
+                    except PermissionError:
+                        QMessageBox.warning(
+                            self.parent, 'File in Use',
+                            file_in_use_msg, QMessageBox.Ok)
 
-                    filename = self._get_new_save_filename(filename)
+                        filename = self._get_new_save_filename(filename)
 
-                    if not filename:
-                        return None
+                        if not filename:
+                            return None
                 except Exception as error:
                     message = save_except_msg.format(
                         '#CC0000', type(error).__name__, error)
                     QMessageBox.critical(
                         self.parent, 'Save Error', message, QMessageBox.Ok)
+
                     return None
                 finally:
-                    if osp.exists(tempname):
-                        try:
-                            os.remove(tempname)
-                        except Exception:
-                            pass
+                    self._cleanup_tempfile(tempname)
+
         else:
             while True:
                 try:
@@ -180,7 +187,7 @@ class SaveFileManager(QObject):
         -------
         filename : str
             The absolute path where the file was successfully saved. Returns
-            'None' if the saving operation was cancelled or was unsuccessfull.
+            'None' if the saving operation was cancelled or was unsuccessful.
         """
         filename = self._get_new_save_filename(filename)
         if filename:
