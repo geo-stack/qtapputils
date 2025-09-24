@@ -53,16 +53,23 @@ NAMEFILTERS = {
     }
 
 
+@pytest.fixture
+def parent(qtbot):
+    parent = QWidget()
+    qtbot.addWidget(parent)
+    return parent
+
+
 # =============================================================================
 # ---- Tests
 # =============================================================================
 @pytest.mark.parametrize('atomic', [True, False])
-def test_save_file_success(tmp_path, atomic):
+def test_save_file_success(tmp_path, atomic, parent):
     """Test successful file save in atomic and non-atomic modes."""
     manager = SaveFileManager(
         namefilters=NAMEFILTERS,
         onsave=dummy_onsave_success,
-        parent=QWidget(),
+        parent=parent,
         atomic=atomic
         )
 
@@ -75,12 +82,12 @@ def test_save_file_success(tmp_path, atomic):
 
 
 @pytest.mark.parametrize('atomic', [True, False])
-def test_save_file_as_success(tmp_path, mocker, atomic):
+def test_save_file_as_success(tmp_path, mocker, atomic, parent):
     """Test successful file save using the 'Save As' dialog."""
     manager = SaveFileManager(
         namefilters=NAMEFILTERS,
         onsave=dummy_onsave_success,
-        parent=QWidget(),
+        parent=parent,
         atomic=atomic
         )
 
@@ -101,12 +108,12 @@ def test_save_file_as_success(tmp_path, mocker, atomic):
 
 
 @pytest.mark.parametrize('atomic', [True, False])
-def test_save_file_permission_error(tmp_path, mocker, atomic):
+def test_save_file_permission_error(tmp_path, mocker, atomic, parent):
     """Test handling of PermissionError during save with user cancel."""
     manager = SaveFileManager(
         namefilters=NAMEFILTERS,
         onsave=dummy_onsave_permission_error,
-        parent=QWidget(),
+        parent=parent,
         atomic=atomic
     )
 
@@ -132,12 +139,12 @@ def test_save_file_permission_error(tmp_path, mocker, atomic):
 
 
 @pytest.mark.parametrize('atomic', [True, False])
-def test_save_file_generic_exception(tmp_path, mocker, atomic):
+def test_save_file_generic_exception(tmp_path, mocker, atomic, parent):
     """Test handling of generic exception during save."""
     manager = SaveFileManager(
         namefilters=NAMEFILTERS,
         onsave=dummy_onsave_generic_error,
-        parent=QWidget(),
+        parent=parent,
         atomic=atomic
         )
 
@@ -155,12 +162,12 @@ def test_save_file_generic_exception(tmp_path, mocker, atomic):
 
 
 @pytest.mark.parametrize('atomic', [True, False])
-def test_extension_added_if_missing(tmp_path, mocker, atomic):
+def test_extension_added_if_missing(tmp_path, mocker, atomic, parent):
     """Test automatic extension addition when missing in file name."""
     manager = SaveFileManager(
         namefilters=NAMEFILTERS,
         onsave=dummy_onsave_success,
-        parent=QWidget(),
+        parent=parent,
         atomic=atomic
     )
 
@@ -181,12 +188,12 @@ def test_extension_added_if_missing(tmp_path, mocker, atomic):
 
 
 @pytest.mark.parametrize('atomic', [True, False])
-def test_save_file_as_cancel(tmp_path, mocker, atomic):
+def test_save_file_as_cancel(tmp_path, mocker, atomic, parent):
     """Test 'Save As' dialog cancel returns None and does not save."""
     manager = SaveFileManager(
         namefilters=NAMEFILTERS,
         onsave=dummy_onsave_success,
-        parent=QWidget(),
+        parent=parent,
         atomic=atomic
         )
 
@@ -204,12 +211,12 @@ def test_save_file_as_cancel(tmp_path, mocker, atomic):
     assert not osp.exists(filename)
 
 
-def test_atomic_save_replace_permission_error(tmp_path, mocker):
+def test_atomic_save_replace_permission_error(tmp_path, mocker, parent):
     """Test atomic save when os.replace raises PermissionError."""
     manager = SaveFileManager(
         namefilters=NAMEFILTERS,
         onsave=dummy_onsave_success,
-        parent=QWidget(),
+        parent=parent,
         atomic=True
     )
     filename = osp.join(tmp_path, "file.txt")
