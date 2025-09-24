@@ -47,8 +47,10 @@ class SaveFileManager(QObject):
             and writes the file contents to disk.
         parent: QWidget, optional
             The parent widget to use for the 'Save As' file dialog.
-        atomic: str
-            Whether to save the file atomically.
+        atomic: bool, optional
+            Whether to save files atomically (write to a temp file then move).
+            Defaults to False for backward compatibility. For better data
+            integrity, consider setting atomic=True.
         """
         super().__init__()
         self.parent = parent
