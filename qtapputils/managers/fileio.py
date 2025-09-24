@@ -56,13 +56,6 @@ class SaveFileManager(QObject):
         self.onsave = onsave
         self.atomic = atomic
 
-    def _cleanup_tempfile(self, tempname):
-        if osp.exists(tempname):
-            try:
-                os.remove(tempname)
-            except Exception:
-                pass
-
     def _get_valid_tempname(self, filename):
         destdir = osp.dirname(filename)
         while True:
@@ -98,7 +91,7 @@ class SaveFileManager(QObject):
     # ---- Public methods
     def save_file(self, filename: str, *args, **kwargs) -> str:
         """
-        Save in provided filename.
+        ave file to the provided filename, with atomic write option.
 
         Parameters
         ----------
@@ -108,71 +101,80 @@ class SaveFileManager(QObject):
         Returns
         -------
         filename : str
-            The absolute path where the file was successfully saved. Returns
-            'None' if the saving operation was cancelled or was unsuccessful.
+            The absolute path where the file was successfully saved.
+            Returns None if save was cancelled or unsuccessful.
         """
-        file_in_use_msg = (
-            "The save file operation cannot be completed because "
-            "the file is in use by another application or user."
-            )
-        save_except_msg = (
-            'An unexpected error occurred while saving the file:'
-            '<br><br>'
-            '<font color="{}">{}:</font> {}'
+        def _show_warning(message: str):
+            QMessageBox.warning(
+                self.parent, 'Save Error', message, QMessageBox.Ok
+                )
+
+        def _show_critical(error: Exception):
+            msg = (f'An unexpected error occurred while saving the file:'
+                   f'<br><br>'
+                   f'<font color="#CC0000">{type(error).__name__}:</font> '
+                   f'{error}')
+            QMessageBox.critical(
+                self.parent, 'Save Error', msg, QMessageBox.Ok
             )
 
-        if self.atomic:
-            while True:
-                tempname = self._get_valid_tempname(filename)
-                try:
+        write_permission_msg = (
+            "You do not have write permission for this location.\n\n"
+            "Please choose a different location and try again."
+            )
+        overwrite_error_msg = (
+            "The save operation could not be completed because:\n\n"
+            "- You do not have write permission for the selected location"
+            ", or\n"
+            "- The file is currently in use by another application.\n\n"
+            "Please choose a different location or ensure the file is not "
+            "open in another program and try again."
+            )
+
+        while True:
+            file_exists = osp.exists(filename)
+            tempname = None
+
+            try:
+                if self.atomic:
+                    tempname = self._get_valid_tempname(filename)
                     self.onsave(tempname, *args, **kwargs)
                     try:
                         os.replace(tempname, filename)
                         return filename
                     except PermissionError:
-                        QMessageBox.warning(
-                            self.parent, 'File in Use',
-                            file_in_use_msg, QMessageBox.Ok)
+                        if file_exists:
+                            _show_warning(overwrite_error_msg)
+                        else:
+                            _show_warning(write_permission_msg)
 
                         filename = self._get_new_save_filename(filename)
-
                         if not filename:
                             return None
-                except Exception as error:
-                    message = save_except_msg.format(
-                        '#CC0000', type(error).__name__, error)
-                    QMessageBox.critical(
-                        self.parent, 'Save Error', message, QMessageBox.Ok)
-
-                    return None
-                finally:
-                    self._cleanup_tempfile(tempname)
-
-        else:
-            while True:
-                try:
+                else:
                     self.onsave(filename, *args, **kwargs)
                     return filename
-                except PermissionError:
-                    QMessageBox.warning(
-                        self.parent, 'File in Use',
-                        file_in_use_msg, QMessageBox.Ok)
 
-                    filename = self._get_new_save_filename(filename)
+            except PermissionError:
+                if self.atomic or not file_exists:
+                    _show_warning(write_permission_msg)
+                else:
+                    _show_warning(overwrite_error_msg)
 
-                    if not filename:
-                        return None
-
-                except Exception as error:
-                    message = save_except_msg.format(
-                        '#CC0000', type(error).__name__, error)
-                    QMessageBox.critical(
-                        self.parent,
-                        'Save Error',
-                        message,
-                        QMessageBox.Ok)
-
+                filename = self._get_new_save_filename(filename)
+                if not filename:
                     return None
+
+            except Exception as error:
+                _show_critical(error)
+                return None
+
+            finally:
+                if self.atomic and osp.exists(tempname):
+                    try:
+                        os.remove(tempname)
+                    except Exception:
+                        pass
 
     def save_file_as(self, filename: str, *args, **kwargs) -> str:
         """
