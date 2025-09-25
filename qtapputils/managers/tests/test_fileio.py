@@ -12,10 +12,7 @@ Tests for the fileio managers.
 """
 
 # ---- Standard imports
-import os
 import os.path as osp
-import stat
-from unittest.mock import MagicMock, patch
 
 # ---- Third party imports
 import pytest
