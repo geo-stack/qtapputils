@@ -372,11 +372,17 @@ def qtwait(condition, timeout=None, check_interval=50, error_message=None):
     loop = QEventLoop()
     start_time = time.monotonic()
 
+    timed_out = [False]
+    # We use a mutable container for 'timed_out' so the inner check_condition()
+    # can update the value in the enclosing scope (works for nested functions
+    # without using the 'nonlocal' keyword).
+
     def check_condition():
         elapsed_time = time.monotonic() - start_time
         if condition():
             loop.quit()
         elif timeout is not None and elapsed_time >= timeout:
+            timed_out[0] = True
             loop.quit()
 
     timer = QTimer()
@@ -386,6 +392,7 @@ def qtwait(condition, timeout=None, check_interval=50, error_message=None):
     check_condition()
     loop.exec_()
 
-    if not condition():
+    # Only raise TimeoutError if timeout was specified and reached.
+    if timeout is not None and timed_out[0] and not condition():
         raise TimeoutError(
             error_message or "Condition not met within timeout.")
