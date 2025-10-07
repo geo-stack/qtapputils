@@ -50,6 +50,12 @@ def get_standard_iconsize(constant: 'str') -> int:
         return style.pixelMetric(QStyle.PM_MessageBoxIconSize)
     elif constant == 'small':
         return style.pixelMetric(QStyle.PM_SmallIconSize)
+    elif constant == 'large':
+        return style.pixelMetric(QStyle.PM_LargeIconSize)
+    elif constant == 'toolbar':
+        return style.pixelMetric(QStyle.PM_ToolBarIconSize)
+    elif constant == 'button':
+        return style.pixelMetric(QStyle.PM_ButtonIconSize)
 
 
 class IconManager:

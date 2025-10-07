@@ -15,20 +15,49 @@ import os.path as osp
 
 # ---- Third party imports
 from qtpy.QtCore import Signal
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (
     QCheckBox, QFrame, QLineEdit, QLabel, QFileDialog, QPushButton,
     QGridLayout, QWidget)
 
+# ---- Local imports
+from qtapputils.qthelpers import create_toolbutton
+
 
 class PathBoxWidget(QFrame):
     """
-    A widget to display and select a directory or file location.
+    a widget to display and select a directory or file location.
+
+    Features
+    --------
+    - Read-only line edit showing the current path.
+    - Browse button to open a QFileDialog for selecting a path.
+    - Optionally, uses a custom icon for the browse button.
+    - Emits `sig_path_changed` when the path changes.
+
+    Parameters
+    ----------
+    parent : QWidget, optional
+        Parent widget.
+    path_type : str, optional
+        Type of path dialog: 'getExistingDirectory', 'getOpenFileName', or
+        'getSaveFileName'.
+    filters : str, optional
+        Filter string for file dialogs.
+    gettext : Callable, optional
+        Translation function for GUI strings.
+    browse_icon : QIcon, optional
+        Custom icon for the browse button.
     """
     sig_path_changed = Signal(str)
 
-    def __init__(self, parent: QWidget = None, path: str = '',
-                 directory: str = '', path_type: str = 'getExistingDirectory',
-                 filters: str = None, gettext: Callable = None):
+    def __init__(
+            self,
+            parent: QWidget = None,
+            path_type: str = 'getExistingDirectory',
+            filters: str = None,
+            gettext: Callable = None,
+            browse_icon: QIcon = None):
         super().__init__(parent)
 
         _ = gettext if gettext else lambda x: x
@@ -39,21 +68,27 @@ class PathBoxWidget(QFrame):
         elif path_type == 'getSaveFileName':
             self._caption = _('Save File')
 
-        self._directory = directory
+        self._directory = osp.expanduser('~')
         self.filters = filters
         self._path_type = path_type
 
-        self.browse_btn = QPushButton(_("Browse..."))
-        self.browse_btn.setDefault(False)
-        self.browse_btn.setAutoDefault(False)
-        self.browse_btn.clicked.connect(self.browse_path)
-
         self.path_lineedit = QLineEdit()
         self.path_lineedit.setReadOnly(True)
-        self.path_lineedit.setText(path)
-        self.path_lineedit.setToolTip(path)
-        self.path_lineedit.setFixedHeight(
-            self.browse_btn.sizeHint().height() - 2)
+        if browse_icon is None:
+            self.browse_btn = QPushButton(_("Browse..."))
+            self.browse_btn.setDefault(False)
+            self.browse_btn.setAutoDefault(False)
+            self.browse_btn.clicked.connect(self.browse_path)
+            # Align line edit height with button.
+            self.path_lineedit.setFixedHeight(
+                self.browse_btn.sizeHint().height() - 2)
+        else:
+            self.browse_btn = create_toolbutton(
+                self,
+                icon=browse_icon,
+                text=_("Browse..."),
+                triggered=self.browse_path,
+                )
 
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -61,21 +96,28 @@ class PathBoxWidget(QFrame):
         layout.addWidget(self.path_lineedit, 0, 0)
         layout.addWidget(self.browse_btn, 0, 1)
 
-    def is_valid(self):
-        """Return whether path is valid."""
+    def is_valid(self) -> bool:
+        """Return True if the current path exists on disk."""
         return osp.exists(self.path())
 
-    def is_empty(self):
-        """Return whether the path is empty."""
-        return self.path_lineedit.text() == ''
+    def is_empty(self) -> bool:
+        """Return True if the current path is empty."""
+        return not self.path_lineedit.text().strip()
 
-    def path(self):
-        """Return the path of this pathbox widget."""
+    def path(self) -> str:
+        """Return the currently displayed path."""
         return self.path_lineedit.text()
 
     def set_path(self, path: str):
-        """Set the path to the specified value."""
-        if path == self.path:
+        """
+        Set the path to the specified value.
+
+        Parameters
+        ----------
+        path : str
+            The new path to display and set as default directory.
+        """
+        if path == self.path():
             return
 
         self.path_lineedit.setText(path)
@@ -90,22 +132,29 @@ class PathBoxWidget(QFrame):
                 self, self._caption, self.directory(),
                 options=QFileDialog.ShowDirsOnly)
         elif self._path_type == 'getOpenFileName':
-            path, ext = QFileDialog.getOpenFileName(
+            path, _ = QFileDialog.getOpenFileName(
                 self, self._caption, self.directory(), self.filters)
         elif self._path_type == 'getSaveFileName':
-            path, ext = QFileDialog.getSaveFileName(
+            path, _ = QFileDialog.getSaveFileName(
                 self, self._caption, self.directory(), self.filters)
 
         if path:
             self.set_path(path)
 
-    def directory(self):
+    def directory(self) -> str:
         """Return the directory that is used by the QFileDialog."""
         return (self._directory if osp.exists(self._directory) else
                 osp.expanduser('~'))
 
     def set_directory(self, directory: str = path):
-        """Set the default directory that will be used by the QFileDialog."""
+        """
+        Set the default directory for file dialogs.
+
+        Parameters
+        ----------
+        directory : str or None
+            Directory path to set as default.
+        """
         if directory is not None and osp.exists(directory):
             self._directory = directory
 
