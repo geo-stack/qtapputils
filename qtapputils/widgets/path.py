@@ -15,10 +15,13 @@ import os.path as osp
 
 # ---- Third party imports
 from qtpy.QtCore import Signal
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import (
     QCheckBox, QFrame, QLineEdit, QLabel, QFileDialog, QPushButton,
     QGridLayout, QWidget)
 
+# ---- Local imports
+from qtapputils.qthelpers import create_toolbutton
 
 class PathBoxWidget(QFrame):
     """
@@ -28,7 +31,8 @@ class PathBoxWidget(QFrame):
 
     def __init__(self, parent: QWidget = None,
                  path_type: str = 'getExistingDirectory',
-                 filters: str = None, gettext: Callable = None):
+                 filters: str = None, gettext: Callable = None,
+                 browse_icon: QIcon = None):
         super().__init__(parent)
 
         _ = gettext if gettext else lambda x: x
@@ -43,15 +47,25 @@ class PathBoxWidget(QFrame):
         self.filters = filters
         self._path_type = path_type
 
-        self.browse_btn = QPushButton(_("Browse..."))
-        self.browse_btn.setDefault(False)
-        self.browse_btn.setAutoDefault(False)
-        self.browse_btn.clicked.connect(self.browse_path)
-
         self.path_lineedit = QLineEdit()
         self.path_lineedit.setReadOnly(True)
-        self.path_lineedit.setFixedHeight(
-            self.browse_btn.sizeHint().height() - 2)
+        if browse_icon is None:
+            self.browse_btn = QPushButton(_("Browse..."))
+            self.browse_btn.setDefault(False)
+            self.browse_btn.setAutoDefault(False)
+            self.browse_btn.clicked.connect(self.browse_path)
+
+            # We need to do this to align vertically the height of the
+            # browse button with the line edit.
+            self.path_lineedit.setFixedHeight(
+                self.browse_btn.sizeHint().height() - 2)
+        else:
+            self.browse_btn = create_toolbutton(
+                self,
+                icon=browse_icon,
+                text=_("Browse..."),
+                triggered=self.browse_path,
+                )
 
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
