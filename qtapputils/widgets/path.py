@@ -26,8 +26,8 @@ class PathBoxWidget(QFrame):
     """
     sig_path_changed = Signal(str)
 
-    def __init__(self, parent: QWidget = None, path: str = '',
-                 directory: str = '', path_type: str = 'getExistingDirectory',
+    def __init__(self, parent: QWidget = None,
+                 path_type: str = 'getExistingDirectory',
                  filters: str = None, gettext: Callable = None):
         super().__init__(parent)
 
@@ -39,7 +39,7 @@ class PathBoxWidget(QFrame):
         elif path_type == 'getSaveFileName':
             self._caption = _('Save File')
 
-        self._directory = directory
+        self._directory = osp.expanduser('~')
         self.filters = filters
         self._path_type = path_type
 
@@ -50,8 +50,6 @@ class PathBoxWidget(QFrame):
 
         self.path_lineedit = QLineEdit()
         self.path_lineedit.setReadOnly(True)
-        self.path_lineedit.setText(path)
-        self.path_lineedit.setToolTip(path)
         self.path_lineedit.setFixedHeight(
             self.browse_btn.sizeHint().height() - 2)
 
