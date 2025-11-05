@@ -30,6 +30,8 @@ else:
         'LIFOTaskManager': 'qtapputils.managers.taskmanagers',
         'SaveFileManager': 'qtapputils.managers.fileio',
         'ShortcutManager': 'qtapputils.managers.shortcuts',
+        'TitleSyncTemplate': 'qtapputils.managers.shortcuts',
+        'ToolTipSyncTemplate': 'qtapputils.managers.shortcuts',
         }
 
     def __getattr__(name):
