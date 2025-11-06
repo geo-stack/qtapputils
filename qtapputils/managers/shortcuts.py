@@ -162,8 +162,11 @@ class ShortcutManager:
         else:
             key_sequence = default_key_sequence
 
+        if self.check_conflicts(context, name, key_sequence):
+            key_sequence = None
+
         qkey_sequence = QKeySequence(key_sequence)
-        if qkey_sequence.isEmpty():
+        if qkey_sequence.isEmpty() and key_sequence is not None:
             raise ValueError(
                 f"Key sequence '{key_sequence}' is not valid."
                 )
@@ -199,6 +202,9 @@ class ShortcutManager:
             self, context: str, name: str, new_key_sequence: str,
             sync_userconfig: bool = False):
         """Update the key sequence for a shortcut"""
+        if self.check_conflicts(context, name, new_key_sequence):
+            return
+
         context_name = f"{context}/{name}"
         new_qkey_sequence = QKeySequence(new_key_sequence)
         self._shortcuts[context_name].set_keyseq(new_qkey_sequence)
@@ -215,17 +221,30 @@ class ShortcutManager:
             if context is None or context == sc.context:
                 yield sc
 
-    def find_conflicts(self, context: str, name: str, new_key_sequence: str):
+    def check_conflicts(self, context: str, name: str, key_sequence: str):
+        conflicts = self.find_conflicts(context, name, key_sequence)
+        if len(conflicts):
+            print(f"Cannot set shortcut '{name}' in context '{context}' "
+                  f"to '{key_sequence}' because of the following "
+                  f"conflict(s):")
+            for sc in conflicts:
+                print(f"  - shortcut '{sc.name}' in context '{sc.context}'")
+            return True
+        return False
+
+    def find_conflicts(self, context: str, name: str, key_sequence: str):
         """Check shortcuts for conflicts."""
         conflicts = []
-        new_qkey_sequence = QKeySequence(new_key_sequence)
+        qkey_sequence = QKeySequence(key_sequence)
         no_match = QKeySequence.SequenceMatch.NoMatch
-        for sc in self.iter_shortcuts(context):
+        for sc in self.iter_shortcuts():
             if sc.qkey_sequence.isEmpty():
                 continue
-            if sc.name == name:
+            if (sc.context, sc.name) == (context, name):
                 continue
-            if (sc.qkey_sequence.matches(new_qkey_sequence) != no_match or
-                    new_qkey_sequence.matches(sc.qkey_sequence) != no_match):
-                conflicts.append(sc)
+            if sc.context in [context, '_'] or context == '_':
+                if sc.qkey_sequence.matches(qkey_sequence) != no_match:
+                    conflicts.append(sc)
+                elif qkey_sequence.matches(sc.qkey_sequence) != no_match:
+                    conflicts.append(sc)
         return conflicts
