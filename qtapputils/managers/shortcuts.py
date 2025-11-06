@@ -14,7 +14,7 @@
 """
 Centralized Shortcut Manager for PyQt5 Applications
 """
-
+import configparser as cp
 from typing import Dict, Callable, Optional, List, Union, Tuple, Protocol, Any
 from enum import Enum
 from PyQt5.QtWidgets import QWidget, QShortcut, QAction
@@ -136,7 +136,7 @@ class ShortcutManager:
             callback: Callable,
             parent: QWidget,
             description: str = "",
-            default_key_sequence: str = '',
+            default_key_sequence: str = None,
             synced_ui_data: Optional[List[UISyncTarget]] = None
             ):
         """
@@ -157,10 +157,22 @@ class ShortcutManager:
                 )
 
         if self._userconfig is not None:
-            key_sequence = self._userconfig.get(
-                'shortcuts', context_name, default_key_sequence)
+            if default_key_sequence is not None:
+                self._userconfig.set_default(
+                    'shortcuts', context_name, default_key_sequence
+                    )
+
+            try:
+                # We don't pass the default value to 'get', because if
+                # option does not exists in 'shortcuts' section, the default
+                # is saved in the current user configs and we do not want
+                # that.
+                key_sequence = self._userconfig.get('shortcuts', context_name)
+            except cp.NoOptionError:
+                key_sequence = default_key_sequence or ''
+
         else:
-            key_sequence = default_key_sequence
+            key_sequence = default_key_sequence or ''
 
         if self.check_conflicts(context, name, key_sequence):
             key_sequence = None
