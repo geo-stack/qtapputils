@@ -136,7 +136,7 @@ class ShortcutManager:
             callback: Callable,
             parent: QWidget,
             description: str = "",
-            default_key_sequence: str = None,
+            default_key_sequence: str = '',
             synced_ui_data: Optional[List[UISyncTarget]] = None
             ):
         """
@@ -157,19 +157,10 @@ class ShortcutManager:
                 )
 
         if self._userconfig is not None:
-            if default_key_sequence is not None:
-                self._userconfig.set_default(
-                    'shortcuts', context_name, default_key_sequence)
             key_sequence = self._userconfig.get(
                 'shortcuts', context_name, default_key_sequence)
-
-        if key_sequence is None:
-            raise ValueError(
-                "No key sequence found in user configs for shortcut "
-                "'{}' in context '{}'. Define a default key sequence in "
-                "the user config of this application or pass a valid "
-                "'default_key_sequence' value."
-                )
+        else:
+            key_sequence = default_key_sequence
 
         qkey_sequence = QKeySequence(key_sequence)
         if qkey_sequence.isEmpty():
