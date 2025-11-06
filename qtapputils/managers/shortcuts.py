@@ -15,8 +15,7 @@
 Centralized Shortcut Manager for PyQt5 Applications
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, Callable, Optional, List, Union, Tuple, Protocol
+from typing import Dict, Callable, Optional, List, Union, Tuple, Protocol, Any
 from enum import Enum
 from PyQt5.QtWidgets import QWidget, QShortcut, QAction
 from PyQt5.QtGui import QKeySequence
@@ -25,55 +24,38 @@ from appconfigs.user import UserConfig
 from qtapputils.qthelpers import format_tooltip, get_shortcuts_native_text
 
 
-class ShortcutSyncTemplate(Protocol):
-    """
-    Template for synchronizing UI text with keyboard shortcuts.
-    """
-
-    def interpolate(self, shortcuts: list[str] | str) -> str:
-        """
-        Interpolate the template with a shortcut string.
-
-        Parameters
-        ----------
-        shortcuts : list[str] | str
-            The keyboard shortcut string or a list of keyboard
-            shortcut strings
-
-        Returns
-        -------
-        str:
-            Formatted string ready to pass to a UI setter.
-        """
-        pass
+class UISyncTranslator(Protocol):
+    def __call__(self, shortcut: List[str] | str) -> tuple:
+        ...
 
 
-class TitleSyncTemplate:
+class TitleSyncTranslator:
     def __init__(self, text):
         self.text = text
 
-    def interpolate(self, shortcuts):
+    def __call__(self, shortcuts):
         keystr = get_shortcuts_native_text(shortcuts)
         if keystr:
-            return f"{self.text} ({keystr})"
+            return f"{self.text} ({keystr})",
         else:
-            return self.text
+            return self.text,
 
 
-class ToolTipSyncTemplate:
+class ToolTipSyncTranslator:
     def __init__(self, title='', text='', alt_text=None):
         self.title = title
         self.text = text
         self.alt_text = text if alt_text is None else alt_text
 
-    def interpolate(self, shortcuts):
+    def __call__(self, shortcuts):
         if shortcuts:
-            return format_tooltip(self.title, self.alt_text, shortcuts)
+            return format_tooltip(self.title, self.alt_text, shortcuts),
         else:
-            return format_tooltip(self.title, self.text, shortcuts)
+            return format_tooltip(self.title, self.text, shortcuts),
 
 
-UISyncTarget = Tuple[Callable[[str], None], ShortcutSyncTemplate]
+UISyncSetter = Callable[..., Any]
+UISyncTarget = Tuple[UISyncSetter, UISyncTranslator]
 
 
 class ShortcutItem:
@@ -134,8 +116,8 @@ class ShortcutItem:
         self.shortcut.setEnabled(enabled)
 
     def _update_ui(self):
-        for callback, template in self.synced_ui_data:
-            callback(template.interpolate(self.qkey_sequence.toString()))
+        for setter, translator in self.synced_ui_data:
+            setter(*translator(self.qkey_sequence.toString()))
 
 
 class ShortcutManager:

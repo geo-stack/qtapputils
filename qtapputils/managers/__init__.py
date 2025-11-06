@@ -12,7 +12,8 @@ if TYPE_CHECKING:
     # Direct imports for type-checking and IDE introspection.
     from .taskmanagers import WorkerBase, TaskManagerBase, LIFOTaskManager
     from .fileio import SaveFileManager
-    from .shortcuts import ShortcutManager
+    from .shortcuts import (
+        ShortcutManager, TitleSyncTranslator, ToolTipSyncTranslator)
 else:
     # Module-level exports for explicit __all__.
     __all__ = [
@@ -30,8 +31,8 @@ else:
         'LIFOTaskManager': 'qtapputils.managers.taskmanagers',
         'SaveFileManager': 'qtapputils.managers.fileio',
         'ShortcutManager': 'qtapputils.managers.shortcuts',
-        'TitleSyncTemplate': 'qtapputils.managers.shortcuts',
-        'ToolTipSyncTemplate': 'qtapputils.managers.shortcuts',
+        'TitleSyncTranslator': 'qtapputils.managers.shortcuts',
+        'ToolTipSyncTranslator': 'qtapputils.managers.shortcuts',
         }
 
     def __getattr__(name):
