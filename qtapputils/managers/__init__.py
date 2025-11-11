@@ -13,7 +13,8 @@ if TYPE_CHECKING:
     from .taskmanagers import WorkerBase, TaskManagerBase, LIFOTaskManager
     from .fileio import SaveFileManager
     from .shortcuts import (
-        ShortcutManager, TitleSyncTranslator, ToolTipSyncTranslator)
+        ShortcutManager, TitleSyncTranslator, ToolTipSyncTranslator,
+        ActionMenuSyncTranslator)
 else:
     # Module-level exports for explicit __all__.
     __all__ = [
@@ -22,6 +23,9 @@ else:
         'LIFOTaskManager',
         'SaveFileManager',
         'ShortcutManager',
+        'TitleSyncTranslator',
+        'ToolTipSyncTranslator',
+        'ActionMenuSyncTranslator',
         ]
 
     # Lazy import mapping.
@@ -33,6 +37,7 @@ else:
         'ShortcutManager': 'qtapputils.managers.shortcuts',
         'TitleSyncTranslator': 'qtapputils.managers.shortcuts',
         'ToolTipSyncTranslator': 'qtapputils.managers.shortcuts',
+        'ActionMenuSyncTranslator': 'qtapputils.managers.shortcuts'
         }
 
     def __getattr__(name):

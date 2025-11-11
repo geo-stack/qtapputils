@@ -24,9 +24,24 @@ from appconfigs.user import UserConfig
 from qtapputils.qthelpers import format_tooltip, get_shortcuts_native_text
 
 
+# =============================================================================
+# UI Sync Translators
+# =============================================================================
 class UISyncTranslator(Protocol):
     def __call__(self, shortcut: List[str] | str) -> tuple:
         ...
+
+
+class ActionMenuSyncTranslator:
+    def __init__(self, text):
+        self.text = text
+
+    def __call__(self, shortcuts):
+        keystr = get_shortcuts_native_text(shortcuts)
+        if keystr:
+            return f"{self.text}\t{keystr}",
+        else:
+            return self.text,
 
 
 class TitleSyncTranslator:
@@ -53,6 +68,10 @@ class ToolTipSyncTranslator:
         else:
             return format_tooltip(self.title, self.text, shortcuts),
 
+
+# =============================================================================
+# Shortcuts Manager
+# =============================================================================
 
 UISyncSetter = Callable[..., Any]
 UISyncTarget = Tuple[UISyncSetter, UISyncTranslator]
