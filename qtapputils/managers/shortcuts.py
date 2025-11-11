@@ -194,10 +194,10 @@ class ShortcutManager:
             key_sequence = default_key_sequence or ''
 
         if self.check_conflicts(context, name, key_sequence):
-            key_sequence = None
+            key_sequence = ''
 
         qkey_sequence = QKeySequence(key_sequence)
-        if qkey_sequence.isEmpty() and key_sequence is not None:
+        if qkey_sequence.isEmpty() and key_sequence not in (None, ''):
             raise ValueError(
                 f"Key sequence '{key_sequence}' is not valid."
                 )
@@ -267,6 +267,9 @@ class ShortcutManager:
         """Check shortcuts for conflicts."""
         conflicts = []
         qkey_sequence = QKeySequence(key_sequence)
+        if qkey_sequence.isEmpty():
+            return conflicts
+
         no_match = QKeySequence.SequenceMatch.NoMatch
         for sc in self.iter_shortcuts():
             if sc.qkey_sequence.isEmpty():
