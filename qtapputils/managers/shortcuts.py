@@ -87,7 +87,7 @@ class ShortcutItem:
                  callback: Callable,
                  parent: QWidget,
                  enabled: bool = True,
-                 description: str = 'Toggle Gain',
+                 description: str = '',
                  synced_ui_data: Optional[List[UISyncTarget]] = None
                  ):
         self.context = context
@@ -104,6 +104,13 @@ class ShortcutItem:
         self.shortcut = None
         if enabled is True:
             self.activate()
+
+    @property
+    def key_sequence(self, native: bool = False):
+        if native:
+            return self.qkey_sequence.toString(QKeySequence.NativeText)
+        else:
+            return self.qkey_sequence.toString()
 
     def activate(self):
         """Internal method to create a QShortcut"""
