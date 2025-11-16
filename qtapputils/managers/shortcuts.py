@@ -236,10 +236,10 @@ class ShortcutManager:
         """Enable or disable a shortcut"""
         self._shortcuts[f"{context}/{name}"].set_enabled(enabled)
 
-    def update_key_sequence(
-            self, context: str, name: str, new_key_sequence: str,
-            sync_userconfig: bool = False):
-        """Update the key sequence for a shortcut"""
+    def set_shortcut(
+            self, context: str, name: str, new_key_sequence: str
+            ):
+        """Set the key sequence for a shortcut"""
         if self.check_conflicts(context, name, new_key_sequence):
             return
 
