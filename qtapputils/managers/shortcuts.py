@@ -1,25 +1,20 @@
 # -*- coding: utf-8 -*-
-# =============================================================================
-# Copyright (C) Les Solutions Géostack, Inc. - All Rights Reserved
+# -----------------------------------------------------------------------------
+# Copyright © QtAppUtils Project Contributors
+# https://github.com/jnsebgosselin/apputils
 #
-# This file is part of Seismate.
-# Unauthorized copying, distribution, or modification of this file,
-# via any medium, is strictly prohibited without explicit permission
-# from Les Solutions Géostack, Inc. Proprietary and confidential.
-#
-# For inquiries, contact: info@geostack.ca
-# Repository: https://github.com/geo-stack/seismate
-# =============================================================================
+# This file is part of QtAppUtils.
+# Licensed under the terms of the MIT License.
+# -----------------------------------------------------------------------------
 
 """
 Centralized Shortcut Manager for PyQt5 Applications
 """
+from dataclasses import dataclass, field
 import configparser as cp
-from typing import Dict, Callable, Optional, List, Union, Tuple, Protocol, Any
-from enum import Enum
-from PyQt5.QtWidgets import QWidget, QShortcut, QAction
+from typing import Dict, Callable, Optional, List, Tuple, Protocol, Any
+from PyQt5.QtWidgets import QWidget, QShortcut
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import Qt
 from appconfigs.user import UserConfig
 from qtapputils.qthelpers import format_tooltip, get_shortcuts_native_text
 
@@ -70,110 +65,140 @@ class ToolTipSyncTranslator:
 
 
 # =============================================================================
-# Shortcuts Manager
+# Shortcut Definition (Declarative - no QShortcut yet)
 # =============================================================================
 
 UISyncSetter = Callable[..., Any]
 UISyncTarget = Tuple[UISyncSetter, UISyncTranslator]
 
 
+@dataclass
+class ShortcutDefinition:
+    """
+    Declarative shortcut definition - describes a shortcut without
+    creating any Qt objects.
+
+    This allows complete registration at startup.
+    """
+    context: str
+    name: str
+    key_sequence: str
+    description: str
+
+    def __post_init__(self):
+        self.current_key_sequence = self.default_key_sequence
+
+    @property
+    def context_name(self) -> str:
+        return f"{self.context}/{self.name}"
+
+    @property
+    def qkey_sequence(self) -> QKeySequence:
+        return QKeySequence(self.key_sequence)
+
+    @property
+    def is_bound(self) -> bool:
+        """Check if this definition has been bound to actual UI."""
+        return hasattr(self, '_shortcut') and self._shortcut is not None
+
+    @property
+    def shortcut(self) -> Optional['ShortcutItem']:
+        return getattr(self, '_shortcut', None)
+
+
+@dataclass
 class ShortcutItem:
-    """Configuration class for shortcut definitions"""
-
-    def __init__(self,
-                 context: str,
-                 name: str,
-                 key_sequence: QKeySequence | str,
-                 callback: Callable,
-                 parent: QWidget,
-                 enabled: bool = True,
-                 description: str = 'Toggle Gain',
-                 synced_ui_data: Optional[List[UISyncTarget]] = None
-                 ):
-        self.context = context
-        self.name = name
-        self.qkey_sequence = QKeySequence(key_sequence)
-        self.callback = callback
-        self.parent = parent
-        self.description = description
-
-        if synced_ui_data is None:
-            synced_ui_data = []
-        self.synced_ui_data = synced_ui_data
-
-        self.shortcut = None
-        if enabled is True:
-            self.activate()
+    """
+    A shortcut that has been bound to actual UI elements.
+    Created when lazy UI is finally instantiated.
+    """
+    definition: ShortcutDefinition
+    callback: Callable
+    parent: QWidget
+    synced_ui_data: List[UISyncTarget] = field(default_factory=list)
+    shortcut: QShortcut = field(default=None, init=False)
+    enabled: bool = field(default=True, init=False)
 
     def activate(self):
-        """Internal method to create a QShortcut"""
+        """Create and activate the QShortcut."""
         if self.shortcut is None:
-            self.shortcut = QShortcut(self.qkey_sequence, self.parent)
-            self.shortcut.activated.connect(self.callback)
+            self.shortcut = QShortcut(
+                self.definition.qkey_sequence, self.parent)
+            self.shortcut. activated.connect(self.callback)
             self.shortcut.setAutoRepeat(False)
         self.set_enabled(True)
         self._update_ui()
 
     def deactivate(self):
-        """Deactivate a specific shortcut"""
+        """Deactivate and clean up the QShortcut."""
         if self.shortcut is not None:
             self.shortcut.setEnabled(False)
             self.shortcut.deleteLater()
-            del self.shortcut
             self.shortcut = None
         self.enabled = False
 
-    def set_keyseq(self, qkey_sequence: QKeySequence):
+    def set_keyseq(self, key_sequence: str):
+        """Update the key sequence."""
+        self.definition.key_sequence = key_sequence
         if self.shortcut is not None:
-            self.qkey_sequence = qkey_sequence
-            self.shortcut.setKey(self.qkey_sequence)
+            self.shortcut.setKey(self.definition.qkey_sequence)
             self._update_ui()
 
     def set_enabled(self, enabled: bool = True):
-        """Enable or disable a shortcut"""
-        self.enabled = enabled
-        self.shortcut.setEnabled(enabled)
+        """Enable or disable the shortcut."""
+        self. enabled = enabled
+        if self.shortcut is not None:
+            self.shortcut.setEnabled(enabled)
 
     def _update_ui(self):
+        """Update synced UI elements with current key sequence."""
+        keystr = self.definition.qkey_sequence.toString()
         for setter, translator in self.synced_ui_data:
-            setter(*translator(self.qkey_sequence.toString()))
+            setter(*translator(keystr))
 
 
+# =============================================================================
+# Shortcuts Manager
+# =============================================================================
 class ShortcutManager:
     """
     Centralized manager for application shortcuts.
+
+    Supports two-phase shortcut management:
+    1. Declaration phase: Define all shortcuts upfront (even before UI exists)
+    2. Binding phase: Bind shortcuts to actual UI when it's created
     """
 
     def __init__(self, userconfig: UserConfig = None):
         self._userconfig = userconfig
+
+        # All declared shortcuts (complete list available immediately)
+        self._definitions: Dict[str, ShortcutDefinition] = {}
+
+        # Shortcuts that have been bound to UI
         self._shortcuts: Dict[str, ShortcutItem] = {}
 
-    def register_shortcut(
+    # =========================================================================
+    # ---- Declaration methods
+    # =========================================================================
+    def declare_shortcut(
             self,
             context: str,
             name: str,
-            callback: Callable,
-            parent: QWidget,
-            description: str = "",
             default_key_sequence: str = None,
-            synced_ui_data: Optional[List[UISyncTarget]] = None
-            ):
+            description: str = ''
+            ) -> ShortcutDefinition:
         """
-        Register a shortcut configuration.
+        Declare a shortcut definition.
 
-        Args:
-            name: Identifier for the shortcut
-            key_sequence: Key combination (e.g., "Ctrl+S", "Alt+F4")
-            callback: Function to call when shortcut is triggered
-            context: Context where shortcut is active
-            description: Human-readable description
+        This allow populating the complete shortcut list, even before their
+        UI exists..
         """
         context_name = f"{context}/{name}"
-        if context_name in self._shortcuts:
+        if context_name in self._definitions:
             raise ValueError(
-                f"There is already a shortcut '{name}' registered for "
-                f"context '{context}'."
-                )
+                f"Shortcut '{name}' already declared for context '{context}'."
+            )
 
         if self._userconfig is not None:
             if default_key_sequence is not None:
@@ -198,63 +223,160 @@ class ShortcutManager:
 
         qkey_sequence = QKeySequence(key_sequence)
         if qkey_sequence.isEmpty() and key_sequence not in (None, ''):
+            # TODO: simply print a warning instead and use '' as shortcut.
             raise ValueError(
                 f"Key sequence '{key_sequence}' is not valid."
                 )
 
-        self._shortcuts[context_name] = ShortcutItem(
+        definition = ShortcutDefinition(
             context=context,
             name=name,
-            key_sequence=qkey_sequence,
-            callback=callback,
-            parent=parent,
-            synced_ui_data=synced_ui_data
+            key_sequence=key_sequence,
+            description=description
             )
 
-    def unregister_shortcut(self, context: str, name: str):
-        """Unregister a shortcut"""
-        self._shortcuts[f"{context}/{name}"].deactivate()
-        del self._shortcuts[f"{context}/{name}"]
+        self._definitions[context_name] = definition
 
+        return definition
+
+    def declare_shortcuts(self, shortcuts: List[dict]):
+        """Bulk declare shortcuts from a list of definitions."""
+        for sc in shortcuts:
+            self.declare_shortcut(**sc)
+
+    # =========================================================================
+    # ---- Binding methods
+    # =========================================================================
+    def bind_shortcut(
+            self,
+            context: str,
+            name: str,
+            callback: Callable,
+            parent: QWidget,
+            synced_ui_data: Optional[List[UISyncTarget]] = None,
+            activate: bool = True
+            ) -> ShortcutItem:
+        """
+        Bind a previously declared shortcut to actual UI elements.
+        Call this when the lazy-loaded UI is finally created.
+        """
+        context_name = f"{context}/{name}"
+        if context_name not in self._definitions:
+            raise ValueError(
+                f"Shortcut '{name}' in context '{context}' was not declared. "
+                f"Call declare_shortcut() first."
+                )
+        if context_name in self._shortcuts:
+            raise ValueError(
+                f"Shortcut '{name}' in context '{context}' is already bound."
+                )
+
+        definition = self._definitions[context_name]
+        shortcut = ShortcutItem(
+            definition=definition,
+            callback=callback,
+            parent=parent,
+            synced_ui_data=synced_ui_data or []
+            )
+
+        # Link back to definition
+        definition._shortcut = shortcut
+        self._shortcuts[context_name] = shortcut
+
+        if activate:
+            shortcut.activate()
+
+        return shortcut
+
+    def unbind_shortcut(self, context: str, name: str):
+        """Unbind a shortcut."""
+        context_name = f"{context}/{name}"
+        if context_name in self._bound:
+            self._shortcuts[context_name].deactivate()
+            self._definitions[context_name]._shortcut = None
+            del self._shortcuts[context_name]
+
+    # =========================================================================
+    # Shortcut Control
+    # =========================================================================
     def activate_shortcut(self, context: str, name: str):
-        """Activate a specific shortcut on a widget"""
-        self._shortcuts[f"{context}/{name}"].activate()
+        """Activate a bound shortcut."""
+        context_name = f"{context}/{name}"
+        if context_name in self._bound:
+            self._shortcuts[context_name].activate()
 
     def deactivate_shortcut(self, context: str, name: str):
-        """Deactivate a specific shortcut"""
-        self._shortcuts[f"{context}/{name}"].deactivate()
-
-    def enable_shortcut(
-            self, context: str, name: str, enabled: bool = True):
-        """Enable or disable a shortcut"""
-        self._shortcuts[f"{context}/{name}"].set_enabled(enabled)
-
-    def update_key_sequence(
-            self, context: str, name: str, new_key_sequence: str,
-            sync_userconfig: bool = False):
-        """Update the key sequence for a shortcut"""
-        if self.check_conflicts(context, name, new_key_sequence):
-            return
-
+        """Deactivate a bound shortcut."""
         context_name = f"{context}/{name}"
-        new_qkey_sequence = QKeySequence(new_key_sequence)
-        self._shortcuts[context_name].set_keyseq(new_qkey_sequence)
+        if context_name in self._bound:
+            self._shortcuts[context_name].deactivate()
+
+    def enable_shortcut(self, context: str, name: str, enabled: bool = True):
+        """Enable or disable a bound shortcut."""
+        context_name = f"{context}/{name}"
+        if context_name in self._bound:
+            self._bound[context_name].set_enabled(enabled)
+
+    def set_key_sequence(
+            self,
+            context: str,
+            name: str,
+            new_key_sequence: str,
+            sync_userconfig: bool = False
+            ):
+        """Set the key sequence for a shortcut (declared or bound)."""
+        context_name = f"{context}/{name}"
+
+        if context_name not in self._definitions:
+            raise ValueError(f"Shortcut '{context_name}' not found.")
+
+        if self.check_conflicts(context, name, new_key_sequence):
+            return False
+
+        definition = self._definitions[context_name]
+        definition.key_sequence = new_key_sequence
+
+        # Update bound shortcut if it exists
+        if context_name in self._shortcuts:
+            self._shortcuts[context_name].set_keyseq(new_key_sequence)
+
+        # Save to user config
         if self._userconfig is not None and sync_userconfig:
             self._userconfig.set(
                 'shortcuts',
                 context_name,
-                new_qkey_sequence.toString()
+                QKeySequence(new_key_sequence).toString()
                 )
 
-    def iter_shortcuts(self, context: str = None):
-        """Iterate over keyboard shortcuts."""
+        return True
+
+    # =========================================================================
+    # Iteration & Query
+    # =========================================================================
+    def iter_definitions(self, context: str = None):
+        """
+        Iterate over ALL shortcut definitions (complete list).
+        Use this for the settings panel.
+        """
+        for definition in self._definitions.values():
+            if context is None or context == definition.context:
+                yield definition
+
+    def iter_bound_shortcuts(self, context: str = None):
+        """Iterate over bound shortcuts only."""
         for sc in self._shortcuts.values():
-            if context is None or context == sc.context:
+            if context is None or context == sc.definition.context:
                 yield sc
 
-    def check_conflicts(self, context: str, name: str, key_sequence: str):
+    # =========================================================================
+    # Conflict Detection
+    # =========================================================================
+    def check_conflicts(
+            self, context: str, name: str, key_sequence: str
+            ) -> bool:
+        """Check for conflicts and print warnings."""
         conflicts = self.find_conflicts(context, name, key_sequence)
-        if len(conflicts):
+        if conflicts:
             print(f"Cannot set shortcut '{name}' in context '{context}' "
                   f"to '{key_sequence}' because of the following "
                   f"conflict(s):")
@@ -271,14 +393,15 @@ class ShortcutManager:
             return conflicts
 
         no_match = QKeySequence.SequenceMatch.NoMatch
-        for sc in self.iter_shortcuts():
-            if sc.qkey_sequence.isEmpty():
+        for sc_def in self._definitions.values():
+            if sc_def.qkey_sequence.isEmpty():
                 continue
-            if (sc.context, sc.name) == (context, name):
+            if (sc_def.context, sc_def.name) == (context, name):
                 continue
-            if sc.context in [context, '_'] or context == '_':
-                if sc.qkey_sequence.matches(qkey_sequence) != no_match:
-                    conflicts.append(sc)
-                elif qkey_sequence.matches(sc.qkey_sequence) != no_match:
-                    conflicts.append(sc)
+            if sc_def.context in [context, '_'] or context == '_':
+                if sc_def.qkey_sequence.matches(qkey_sequence) != no_match:
+                    conflicts.append(sc_def)
+                elif qkey_sequence.matches(sc_def.qkey_sequence) != no_match:
+                    conflicts.append(sc_def)
+
         return conflicts
