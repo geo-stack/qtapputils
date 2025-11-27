@@ -119,6 +119,13 @@ class ShortcutItem:
     shortcut: QShortcut = field(default=None, init=False)
     enabled: bool = field(default=True, init=False)
 
+    @property
+    def key_sequence(self, native: bool = False):
+        if native:
+            return self.qkey_sequence.toString(QKeySequence.NativeText)
+        else:
+            return self.qkey_sequence.toString()
+
     def activate(self):
         """Create and activate the QShortcut."""
         if self.shortcut is None:
