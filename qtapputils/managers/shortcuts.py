@@ -85,9 +85,6 @@ class ShortcutDefinition:
     key_sequence: str
     description: str
 
-    def __post_init__(self):
-        self.current_key_sequence = self.default_key_sequence
-
     @property
     def context_name(self) -> str:
         return f"{self.context}/{self.name}"
