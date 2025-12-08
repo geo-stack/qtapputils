@@ -305,9 +305,9 @@ def format_tooltip(text: str, tip: str, shortcuts: list[str] | str):
     if text or keystr:
         ttip += "<p style='white-space:pre'><b>"
         if text:
-            ttip += f"{text}"
+            ttip += f"{text}" + (" " if keystr else "")
         if keystr:
-            ttip += " ({sc_str})"
+            ttip += "({sc_str})"
         ttip += "</b></p>"
     if tip:
         ttip += f"<p>{tip or ''}</p>"
