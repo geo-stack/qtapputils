@@ -103,18 +103,25 @@ class ShortcutDefinition:
         return getattr(self, '_shortcut', None)
 
 
-@dataclass
 class ShortcutItem:
     """
     A shortcut that has been bound to actual UI elements.
     Created when lazy UI is finally instantiated.
     """
-    definition: ShortcutDefinition
-    callback: Callable
-    parent: QWidget
-    synced_ui_data: List[UISyncTarget] = field(default_factory=list)
-    shortcut: QShortcut = field(default=None, init=False)
-    enabled: bool = field(default=True, init=False)
+
+    def __init__(self, definition: ShortcutDefinition, callback: Callable,
+                 parent: QWidget, synced_ui_data: List[UISyncTarget] = None,
+                 enabled: bool = True):
+
+        self.definition = definition
+        self.callback = callback
+        self.parent = parent
+        self.synced_ui_data = synced_ui_data or []
+
+        self.shortcut = None
+        self.enabled = False
+
+        self._update_ui()
 
     @property
     def key_sequence(self, native: bool = False):
