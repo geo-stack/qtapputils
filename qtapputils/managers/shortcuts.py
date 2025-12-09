@@ -299,7 +299,7 @@ class ShortcutManager:
     def unbind_shortcut(self, context: str, name: str):
         """Unbind a shortcut."""
         context_name = f"{context}/{name}"
-        if context_name in self._bound:
+        if context_name in self._shortcuts:
             self._shortcuts[context_name].deactivate()
             self._definitions[context_name]._shortcut = None
             del self._shortcuts[context_name]
@@ -310,20 +310,20 @@ class ShortcutManager:
     def activate_shortcut(self, context: str, name: str):
         """Activate a bound shortcut."""
         context_name = f"{context}/{name}"
-        if context_name in self._bound:
+        if context_name in self._shortcuts:
             self._shortcuts[context_name].activate()
 
     def deactivate_shortcut(self, context: str, name: str):
         """Deactivate a bound shortcut."""
         context_name = f"{context}/{name}"
-        if context_name in self._bound:
+        if context_name in self._shortcuts:
             self._shortcuts[context_name].deactivate()
 
     def enable_shortcut(self, context: str, name: str, enabled: bool = True):
         """Enable or disable a bound shortcut."""
         context_name = f"{context}/{name}"
-        if context_name in self._bound:
-            self._bound[context_name].set_enabled(enabled)
+        if context_name in self._shortcuts:
+            self._shortcuts[context_name].set_enabled(enabled)
 
     def set_key_sequence(
             self,
