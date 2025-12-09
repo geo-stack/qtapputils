@@ -17,7 +17,7 @@ from unittest.mock import Mock
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import Qt
-from appconfigs.user import NoDefault
+
 from qtapputils.managers.shortcuts import (
     ShortcutManager, ShortcutDefinition, ShortcutItem,
     ActionMenuSyncTranslator, TitleSyncTranslator, ToolTipSyncTranslator)
@@ -45,7 +45,7 @@ def userconfig():
             self._config = {'file/save': 'Ctrl+S',
                             'file/open': 'Ctrl+O'}
 
-        def get(self, section, option, default=NoDefault):
+        def get(self, section, option):
             if section != 'shortcuts':
                 raise KeyError(
                     f"'section' should be 'shortcuts', but got {section}.")
