@@ -27,7 +27,7 @@ from qtapputils.qthelpers import format_tooltip, get_shortcuts_native_text
 # UI Sync Translators
 # =============================================================================
 class UISyncTranslator(Protocol):
-    def __call__(self, shortcut: List[str] | str) -> tuple:
+    def __call__(self, shortcut: list[str] | str) -> tuple:
         ...
 
 
@@ -188,7 +188,7 @@ class ShortcutManager:
     2. Binding phase: Bind shortcuts to actual UI when it's created
     """
 
-    def __init__(self, userconfig: UserConfig = None):
+    def __init__(self, userconfig: 'UserConfig' = None):
         self._userconfig = userconfig
 
         # All declared shortcuts (complete list available immediately)
