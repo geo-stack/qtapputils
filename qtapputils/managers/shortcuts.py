@@ -110,8 +110,7 @@ class ShortcutItem:
     """
 
     def __init__(self, definition: ShortcutDefinition, callback: Callable,
-                 parent: QWidget, synced_ui_data: List[UISyncTarget] = None,
-                 enabled: bool = True):
+                 parent: QWidget, synced_ui_data: List[UISyncTarget] = None):
 
         self.definition = definition
         self.callback = callback
@@ -201,7 +200,7 @@ class ShortcutManager:
             self,
             context: str,
             name: str,
-            default_key_sequence: str = None,
+            default_key_sequence: str = '',
             description: str = ''
             ) -> ShortcutDefinition:
         """
@@ -216,12 +215,8 @@ class ShortcutManager:
                 f"Shortcut '{name}' already declared for context '{context}'."
             )
 
+        key_sequence = default_key_sequence
         if self._userconfig is not None:
-            if default_key_sequence is not None:
-                self._userconfig.set_default(
-                    'shortcuts', context_name, default_key_sequence
-                    )
-
             try:
                 # We don't pass the default value to 'get', because if
                 # option does not exists in 'shortcuts' section, the default
@@ -229,10 +224,7 @@ class ShortcutManager:
                 # that.
                 key_sequence = self._userconfig.get('shortcuts', context_name)
             except cp.NoOptionError:
-                key_sequence = default_key_sequence or ''
-
-        else:
-            key_sequence = default_key_sequence or ''
+                pass
 
         if self.check_conflicts(context, name, key_sequence):
             key_sequence = ''
