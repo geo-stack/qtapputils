@@ -370,7 +370,7 @@ class ShortcutManager:
             if context is None or context == definition.context:
                 yield definition
 
-    def iter_bound_shortcuts(self, context: str = None):
+    def iter_shortcuts(self, context: str = None):
         """Iterate over bound shortcuts only."""
         for sc in self._shortcuts.values():
             if context is None or context == sc.definition.context:
