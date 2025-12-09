@@ -125,17 +125,21 @@ class ShortcutItem:
 
     @property
     def key_sequence(self, native: bool = False):
+        if self.shortcut is None:
+            return ''
+
         if native:
-            return self.qkey_sequence.toString(QKeySequence.NativeText)
+            return self.definition.qkey_sequence.toString(
+                QKeySequence.NativeText)
         else:
-            return self.qkey_sequence.toString()
+            return self.definition.qkey_sequence.toString()
 
     def activate(self):
         """Create and activate the QShortcut."""
         if self.shortcut is None:
             self.shortcut = QShortcut(
                 self.definition.qkey_sequence, self.parent)
-            self.shortcut. activated.connect(self.callback)
+            self.shortcut.activated.connect(self.callback)
             self.shortcut.setAutoRepeat(False)
         self.set_enabled(True)
         self._update_ui()
@@ -147,6 +151,7 @@ class ShortcutItem:
             self.shortcut.deleteLater()
             self.shortcut = None
         self.enabled = False
+        self._update_ui()
 
     def set_keyseq(self, key_sequence: str):
         """Update the key sequence."""
@@ -157,13 +162,13 @@ class ShortcutItem:
 
     def set_enabled(self, enabled: bool = True):
         """Enable or disable the shortcut."""
-        self. enabled = enabled
+        self.enabled = enabled
         if self.shortcut is not None:
             self.shortcut.setEnabled(enabled)
 
     def _update_ui(self):
         """Update synced UI elements with current key sequence."""
-        keystr = self.definition.qkey_sequence.toString()
+        keystr = self.key_sequence
         for setter, translator in self.synced_ui_data:
             setter(*translator(keystr))
 
