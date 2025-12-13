@@ -227,7 +227,7 @@ class ShortcutManager:
                 # is saved in the current user configs and we do not want
                 # that.
                 key_sequence = self._userconfig.get('shortcuts', context_name)
-            except cp.NoOptionError:
+            except (cp.NoOptionError, cp.NoSectionError):
                 pass
 
         if self.check_conflicts(context, name, key_sequence):
