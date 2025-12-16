@@ -214,7 +214,8 @@ class RangeWidget(QObject):
 
     def __init__(self, parent: QWidget = None, maximum: float = 99.99,
                  minimum: float = 0, singlestep: float = 0.01,
-                 decimals: int = 2, null_range_ok: bool = True):
+                 decimals: int = 2, null_range_ok: bool = True,
+                 precise: bool = False):
         super().__init__()
         self.decimals = decimals
         self.null_range_ok = null_range_ok
@@ -224,14 +225,14 @@ class RangeWidget(QObject):
 
         self.spinbox_start = RangeSpinBox(
             minimum=minimum, singlestep=singlestep, decimals=decimals,
-            value=minimum)
+            value=minimum, precise=precise)
 
         self.spinbox_start.sig_value_changed.connect(
             lambda: self._handle_value_changed())
 
         self.spinbox_end = RangeSpinBox(
             maximum=maximum, singlestep=singlestep, decimals=decimals,
-            value=maximum)
+            value=maximum, precise=precise)
 
         self.spinbox_end.sig_value_changed.connect(
             lambda: self._handle_value_changed())
