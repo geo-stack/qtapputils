@@ -372,7 +372,7 @@ def test_bind_shortcut(widget):
             )
 
 
-def test_set_key_sequence(widget):
+def test_set_shortcut(widget):
     manager = ShortcutManager()
 
     manager.declare_shortcut(
@@ -380,9 +380,7 @@ def test_set_key_sequence(widget):
         )
 
     # Set a key sequence on an unbound shortcut.
-    result = manager.set_key_sequence("file", "save", "Ctrl+Shift+S")
-
-    assert result is True
+    assert manager.set_shortcut("file", "save", "Ctrl+Shift+S")
     assert [d.key_sequence for d in manager.iter_definitions()] == [
         "Ctrl+Shift+S"]
 
@@ -390,19 +388,16 @@ def test_set_key_sequence(widget):
     manager.bind_shortcut(
         context="file", name="save", callback=Mock(), parent=widget
         )
-    result = manager.set_key_sequence(
-        "file", "save", "Alt+S"
-        )
-    assert result is True
+
+    assert manager.set_shortcut("file", "save", "Alt+S")
     assert [d.key_sequence for d in manager.iter_definitions()] == [
         "Alt+S"]
 
     # Try setting a key sequence to an invalid shortcut name.
-    with pytest.raises(ValueError, match="not found"):
-        manager.set_key_sequence("file", "nonexistent", "Ctrl+S")
+    assert manager.set_shortcut("file", "nonexistent", "Ctrl+S") is False
 
 
-def test_set_key_sequence_with_userconfig(widget, userconfig):
+def test_set_shortcut_with_userconfig(widget, userconfig):
     manager = ShortcutManager(userconfig=userconfig)
 
     manager.declare_shortcut(
@@ -416,14 +411,14 @@ def test_set_key_sequence_with_userconfig(widget, userconfig):
 
     # Set a new key sequence and assert the userconfig is updated
     # when sync_userconfig is set to True.
-    manager.set_key_sequence(
+    manager.set_shortcut(
         "file", "save", "Ctrl+Shift+S", sync_userconfig=False
         )
     assert [d.key_sequence for d in manager.iter_shortcuts()] == [
         "Ctrl+Shift+S"]
     assert userconfig._config['file/save'] == 'Ctrl+S'
 
-    manager.set_key_sequence(
+    manager.set_shortcut(
         "file", "save", "Ctrl+Shift+S", sync_userconfig=True
         )
     assert [d.key_sequence for d in manager.iter_shortcuts()] == [
@@ -431,7 +426,7 @@ def test_set_key_sequence_with_userconfig(widget, userconfig):
     assert userconfig._config['file/save'] == "Ctrl+Shift+S"
 
     # Set an invalid key sequence.
-    manager.set_key_sequence(
+    manager.set_shortcut(
         "file", "save", "InvalidKey123! @#", sync_userconfig=True
         )
     assert [d.key_sequence for d in manager.iter_shortcuts()] == [""]
