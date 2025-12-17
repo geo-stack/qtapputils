@@ -247,10 +247,6 @@ class ShortcutManager:
             raise ValueError(
                 f"Key sequence '{key_sequence}' is not valid."
                 )
-        if qkey_sequence.toString() in self._blocklist:
-            raise ValueError(
-                f"Key sequence '{key_sequence}' is reserved or not allowed."
-                )
 
         definition = ShortcutDefinition(
             context=context,
@@ -367,7 +363,16 @@ class ShortcutManager:
             ) -> bool:
         """Check for conflicts and print warnings."""
 
-        if QKeySequence(key_sequence).toString() in self._blocklist:
+        qkey_sequence = QKeySequence(key_sequence)
+
+        if qkey_sequence.toString() == '' and key_sequence not in (None, ''):
+            print_warning(
+                "ShortcutError",
+                f"Key sequence '{key_sequence}' is not valid."
+                )
+            return True
+
+        if qkey_sequence.toString() in self._blocklist:
             print_warning(
                 "ShortcutError",
                 f"Cannot set shortcut '{name}' in context '{context}' "
