@@ -439,3 +439,22 @@ class ShortcutManager:
                     conflicts.append(sc_def)
 
         return conflicts
+
+    # ---- End User Interface
+    def print_shortcuts(self):
+        """
+        Print all declared shortcuts to the console in a formatted table.
+        """
+        defs = list(self.shortcut_manager.iter_definitions())
+        context_w = max(len(scd.context) for scd in defs) + 2
+        name_w = max(len(scd.name) for scd in defs) + 2
+
+        print()
+        print('-' * (context_w + name_w + 12))
+        print(f"{'Context':<{context_w}}{'Name':<{name_w}}{'Key Sequence'}")
+        print('-' * (context_w + name_w + 12))
+        for scd in defs:
+            print(f"{scd.context:<{context_w}}{scd.name:<{name_w}}"
+                  f"{scd.qkey_sequence.toString()}")
+        print('-' * (context_w + name_w + 12))
+
