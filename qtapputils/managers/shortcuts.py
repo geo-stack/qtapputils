@@ -411,12 +411,16 @@ class ShortcutManager:
 
         conflicts = self.find_conflicts(context, name, key_sequence)
         if conflicts:
-            print(f"Cannot set shortcut '{name}' in context '{context}' "
-                  f"to '{key_sequence}' because of the following "
-                  f"conflict(s):")
+            print_warning(
+                "Shortcut Error",
+                f"Cannot set shortcut '{name}' in context '{context}' "
+                f"to '{key_sequence}' because of the following "
+                f"conflict(s):"
+                )
             for sc in conflicts:
                 print(f"  - shortcut '{sc.name}' in context '{sc.context}'")
             return True
+
         return False
 
     def find_conflicts(self, context: str, name: str, key_sequence: str):
