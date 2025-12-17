@@ -193,8 +193,12 @@ class ShortcutManager:
     2. Binding phase: Bind shortcuts to actual UI when it's created
     """
 
-    def __init__(self, userconfig: 'UserConfig' = None):
+    def __init__(self, userconfig: 'UserConfig' = None,
+                 blocklist: list[str] = None):
         self._userconfig = userconfig
+
+        # The list of blocklisted key sequence.
+        self._blocklist: list[str] = [] if blocklist is None else blocklist
 
         # All declared shortcuts (complete list available immediately)
         self._definitions: Dict[str, ShortcutDefinition] = {}
@@ -240,9 +244,12 @@ class ShortcutManager:
 
         qkey_sequence = QKeySequence(key_sequence)
         if qkey_sequence.isEmpty() and key_sequence not in (None, ''):
-            # TODO: simply print a warning instead and use '' as shortcut.
             raise ValueError(
                 f"Key sequence '{key_sequence}' is not valid."
+                )
+        if qkey_sequence.toString() in self._blocklist:
+            raise ValueError(
+                f"Key sequence '{key_sequence}' is reserved or not allowed."
                 )
 
         definition = ShortcutDefinition(
@@ -392,6 +399,16 @@ class ShortcutManager:
             self, context: str, name: str, key_sequence: str
             ) -> bool:
         """Check for conflicts and print warnings."""
+
+        if QKeySequence(key_sequence).toString() in self._blocklist:
+            print_warning(
+                "Shortcut Error",
+                f"Cannot set shortcut '{name}' in context '{context}' "
+                f"because the key sequence '{key_sequence}' is reserved or "
+                f"not allowed. Please select a different shortcut."
+                )
+            return True
+
         conflicts = self.find_conflicts(context, name, key_sequence)
         if conflicts:
             print(f"Cannot set shortcut '{name}' in context '{context}' "
