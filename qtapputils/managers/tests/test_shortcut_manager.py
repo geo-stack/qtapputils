@@ -451,6 +451,23 @@ def test_iter_bound_shortcuts(populated_manager):
     assert file_bound[0].definition. context == "file"
 
 
+def test_blocklist(userconfig):
+    manager = ShortcutManager(blocklist=['Ctrl+Z'])
+
+    definition = manager.declare_shortcut(
+        context="file",
+        name="save",
+        default_key_sequence='Ctrl+Z',
+        description="Save file"
+        )
+    assert definition.qkey_sequence.toString() == ''
+
+    assert manager.set_shortcut("file", "save", 'Ctrl+S')
+    assert definition.qkey_sequence.toString() == 'Ctrl+S'
+    assert manager.set_shortcut("file", "save", 'Ctrl+Z') is False
+    assert definition.qkey_sequence.toString() == 'Ctrl+S'
+
+
 def test_find_conflicts(populated_manager):
     # context="file", name="save", default_key_sequence="Ctrl+S"
     # context="file", name="open", default_key_sequence="Ctrl+O"
