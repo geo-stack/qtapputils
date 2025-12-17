@@ -341,39 +341,6 @@ class ShortcutManager:
         if context_name in self._shortcuts:
             self._shortcuts[context_name].set_enabled(enabled)
 
-    def set_key_sequence(
-            self,
-            context: str,
-            name: str,
-            new_key_sequence: str,
-            sync_userconfig: bool = False
-            ):
-        """Set the key sequence for a shortcut (declared or bound)."""
-        context_name = f"{context}/{name}"
-
-        if context_name not in self._definitions:
-            raise ValueError(f"Shortcut '{context_name}' not found.")
-
-        if self.check_conflicts(context, name, new_key_sequence):
-            return False
-
-        definition = self._definitions[context_name]
-        definition.key_sequence = new_key_sequence
-
-        # Update bound shortcut if it exists
-        if context_name in self._shortcuts:
-            self._shortcuts[context_name].set_keyseq(new_key_sequence)
-
-        # Save to user config
-        if self._userconfig is not None and sync_userconfig:
-            self._userconfig.set(
-                'shortcuts',
-                context_name,
-                QKeySequence(new_key_sequence).toString()
-                )
-
-        return True
-
     # =========================================================================
     # Iteration & Query
     # =========================================================================
@@ -462,3 +429,66 @@ class ShortcutManager:
                   f"{scd.qkey_sequence.toString()}")
         print('-' * (context_w + name_w + 12))
 
+    def set_shortcut(
+            self,
+            context: str,
+            name: str,
+            new_key_sequence: str,
+            sync_userconfig: bool = False
+            ):
+        """
+        Set a new key sequence for a declared or bound shortcut.
+
+        If the shortcut exists and the new key sequence is valid (i.e., not
+        blocked or conflicting), the shortcut is updated. If the shortcut is
+        currently bound to a UI element, the change will take effect
+        immediately for it. If `sync_userconfig` is True and a user config
+        has been passed to the shortcut manager, the user's new shortcut
+        setting is saved for future sessions.
+
+        Parameters
+        ----------
+        context : str
+            The shortcut context (e.g., "file", "edit").
+        name : str
+            The name identifier of the shortcut within its
+            context (e.g., "save", "copy").
+        new_key_sequence : str
+            The new key sequence to assign (e.g., "Ctrl+S").
+        sync_userconfig : bool, optional
+            Whether to save the change in the persistent user
+            configuration. The default is False.
+
+        Returns
+        -------
+        bool
+            True if the update succeeded, False otherwise.
+        """
+        context_name = f"{context}/{name}"
+
+        if context_name not in self._definitions:
+            print_warning(
+                "Shortcut Error",
+                f"Cannot find shortcut '{name}' in context '{context}'."
+                )
+            return False
+
+        if self.check_conflicts(context, name, new_key_sequence):
+            return False
+
+        definition = self._definitions[context_name]
+        definition.key_sequence = new_key_sequence
+
+        # Update bound shortcut if it exists
+        if context_name in self._shortcuts:
+            self._shortcuts[context_name].set_keyseq(new_key_sequence)
+
+        # Save to user config
+        if self._userconfig is not None and sync_userconfig:
+            self._userconfig.set(
+                'shortcuts',
+                context_name,
+                QKeySequence(new_key_sequence).toString()
+                )
+
+        return True
