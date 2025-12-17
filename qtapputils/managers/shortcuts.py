@@ -10,17 +10,22 @@
 """
 Centralized Shortcut Manager for PyQt5 Applications
 """
-from typing import TYPE_CHECKING
+from typing import (
+    TYPE_CHECKING, Dict, Callable, Optional, List, Tuple, Protocol, Any)
 if TYPE_CHECKING:
     from appconfigs.user import UserConfig
 
+# ---- Standard import
 from dataclasses import dataclass
 import configparser as cp
-from typing import Dict, Callable, Optional, List, Tuple, Protocol, Any
-from PyQt5.QtWidgets import QWidget, QShortcut
-from PyQt5.QtGui import QKeySequence
 
+# ---- Third party import
+from qtpy.QtWidgets import QWidget, QShortcut
+from qtpy.QtGui import QKeySequence
+
+# ---- Local import
 from qtapputils.qthelpers import format_tooltip, get_shortcuts_native_text
+from qtapputils.utils.console import print_warning
 
 
 # =============================================================================
