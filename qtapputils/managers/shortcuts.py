@@ -369,7 +369,7 @@ class ShortcutManager:
 
         if QKeySequence(key_sequence).toString() in self._blocklist:
             print_warning(
-                "Shortcut Error",
+                "ShortcutError",
                 f"Cannot set shortcut '{name}' in context '{context}' "
                 f"because the key sequence '{key_sequence}' is reserved or "
                 f"not allowed. Please select a different shortcut."
@@ -379,7 +379,7 @@ class ShortcutManager:
         conflicts = self.find_conflicts(context, name, key_sequence)
         if conflicts:
             print_warning(
-                "Shortcut Error",
+                "ShortcutError",
                 f"Cannot set shortcut '{name}' in context '{context}' "
                 f"to '{key_sequence}' because of the following "
                 f"conflict(s):"
@@ -468,7 +468,7 @@ class ShortcutManager:
 
         if context_name not in self._definitions:
             print_warning(
-                "Shortcut Error",
+                "ShortcutError",
                 f"Cannot find shortcut '{name}' in context '{context}'."
                 )
             return False
