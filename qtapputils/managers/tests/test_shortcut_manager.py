@@ -267,7 +267,7 @@ def test_declare_shortcut():
 
     assert isinstance(definition, ShortcutDefinition)
     assert definition.context == "file"
-    assert definition.key_sequence == "InvalidKey123! @#"
+    assert definition.key_sequence == ''
     assert definition.qkey_sequence.toString() == ''
 
     # Bulk shortcuts declaration.
@@ -426,11 +426,12 @@ def test_set_shortcut_with_userconfig(widget, userconfig):
     assert userconfig._config['file/save'] == "Ctrl+Shift+S"
 
     # Set an invalid key sequence.
-    manager.set_shortcut(
+    assert manager.set_shortcut(
         "file", "save", "InvalidKey123! @#", sync_userconfig=True
-        )
-    assert [d.key_sequence for d in manager.iter_shortcuts()] == [""]
-    assert userconfig._config['file/save'] == ""
+        ) is False
+    assert [d.key_sequence for d in manager.iter_shortcuts()] == [
+        "Ctrl+Shift+S"]
+    assert userconfig._config['file/save'] == "Ctrl+Shift+S"
 
 
 def test_iter_definitions(populated_manager):
