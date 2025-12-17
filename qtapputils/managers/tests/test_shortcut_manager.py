@@ -616,5 +616,25 @@ def test_lazy_ui_pattern(qtbot):
         "<p>Save with the file with Ctrl+S.</p>")
 
 
+def test_print_shortcuts(populated_manager, capsys):
+    captured = capsys.readouterr()
+    assert captured.out == ''
+
+    populated_manager.print_shortcuts()
+
+    captured = capsys.readouterr()
+    assert captured.out == (
+        "\n"
+        "------------------------\n"
+        "ContextName  Key Sequence\n"
+        "------------------------\n"
+        "file  save  Ctrl+S\n"
+        "file  open  Ctrl+O\n"
+        "edit  copy  Ctrl+C\n"
+        "_     quit  Ctrl+Q\n"
+        "------------------------\n"
+        )
+
+
 if __name__ == "__main__":
     pytest.main(['-x', __file__, '-vv', '-rw'])
