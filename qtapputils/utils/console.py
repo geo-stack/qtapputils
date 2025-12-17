@@ -17,4 +17,4 @@ def print_warning(warning_type: str | type, message: str):
     if not isinstance(warning_type, str):
         warning_type = warning_type.__name__
 
-    print(f"\n{Fore.RED}{warning_type}:{Fore.RESET} {message}\n")
+    print(f"\n{Fore.RED}{warning_type}:{Fore.RESET} {message}")
