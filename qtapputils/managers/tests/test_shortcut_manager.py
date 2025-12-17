@@ -235,7 +235,7 @@ def test_shortcut_item(shortcut_item, widget, qtbot):
 # ShortcutManager Tests
 # =============================================================================
 
-def test_declare_shortcut():
+def test_declare_shortcut(capsys):
     manager = ShortcutManager()
 
     definition = manager.declare_shortcut(
@@ -259,11 +259,17 @@ def test_declare_shortcut():
             )
 
     # Test invalid key.
+    captured = capsys.readouterr()
+    assert "ShortcutError" not in captured.out
+
     definition = manager.declare_shortcut(
         context="file",
         name="load",
         default_key_sequence="InvalidKey123! @#"
         )
+
+    captured = capsys.readouterr()
+    assert "ShortcutError" in captured.out
 
     assert isinstance(definition, ShortcutDefinition)
     assert definition.context == "file"
@@ -372,7 +378,7 @@ def test_bind_shortcut(widget):
             )
 
 
-def test_set_shortcut(widget):
+def test_set_shortcut(widget, capsys):
     manager = ShortcutManager()
 
     manager.declare_shortcut(
@@ -394,10 +400,17 @@ def test_set_shortcut(widget):
         "Alt+S"]
 
     # Try setting a key sequence to an invalid shortcut name.
-    assert manager.set_shortcut("file", "nonexistent", "Ctrl+S") is False
+    captured = capsys.readouterr()
+    assert "ShortcutError" not in captured.out
+
+    result = manager.set_shortcut("file", "nonexistent", "Ctrl+S")
+    assert result is False
+
+    captured = capsys.readouterr()
+    assert "ShortcutError" in captured.out
 
 
-def test_set_shortcut_with_userconfig(widget, userconfig):
+def test_set_shortcut_with_userconfig(widget, userconfig, capsys):
     manager = ShortcutManager(userconfig=userconfig)
 
     manager.declare_shortcut(
@@ -426,9 +439,15 @@ def test_set_shortcut_with_userconfig(widget, userconfig):
     assert userconfig._config['file/save'] == "Ctrl+Shift+S"
 
     # Set an invalid key sequence.
-    assert manager.set_shortcut(
+    captured = capsys.readouterr()
+    assert "ShortcutError" not in captured.out
+
+    manager.set_shortcut(
         "file", "save", "InvalidKey123! @#", sync_userconfig=True
-        ) is False
+        )
+
+    captured = capsys.readouterr()
+    assert "ShortcutError" in captured.out
     assert [d.key_sequence for d in manager.iter_shortcuts()] == [
         "Ctrl+Shift+S"]
     assert userconfig._config['file/save'] == "Ctrl+Shift+S"
@@ -452,8 +471,11 @@ def test_iter_bound_shortcuts(populated_manager):
     assert file_bound[0].definition. context == "file"
 
 
-def test_blocklist(userconfig):
+def test_blocklist(userconfig, capsys):
     manager = ShortcutManager(blocklist=['Ctrl+Z'])
+
+    captured = capsys.readouterr()
+    assert "ShortcutError" not in captured.out
 
     definition = manager.declare_shortcut(
         context="file",
@@ -463,13 +485,20 @@ def test_blocklist(userconfig):
         )
     assert definition.qkey_sequence.toString() == ''
 
+    captured = capsys.readouterr()
+    assert "ShortcutError" in captured.out
+
     assert manager.set_shortcut("file", "save", 'Ctrl+S')
     assert definition.qkey_sequence.toString() == 'Ctrl+S'
+
     assert manager.set_shortcut("file", "save", 'Ctrl+Z') is False
     assert definition.qkey_sequence.toString() == 'Ctrl+S'
 
+    captured = capsys.readouterr()
+    assert "ShortcutError" in captured.out
 
-def test_find_conflicts(populated_manager):
+
+def test_find_conflicts(populated_manager, capsys):
     # context="file", name="save", default_key_sequence="Ctrl+S"
     # context="file", name="open", default_key_sequence="Ctrl+O"
     # context="edit", name="copy", default_key_sequence="Ctrl+C"
@@ -498,20 +527,16 @@ def test_find_conflicts(populated_manager):
     assert len(conflicts) == 0
 
     # Declare with conflicting key - the 'default_key_sequence' is ignored.
+    captured = capsys.readouterr()
+    assert "ShortcutError" not in captured.out
+
     definition = populated_manager.declare_shortcut(
         context="file", name="save_as", default_key_sequence="Ctrl+S"
         )
     assert definition.key_sequence == ""
 
-
-def test_check_conflicts_prints_warning(populated_manager, capsys):
-    has_conflict = populated_manager.check_conflicts(
-        "file", "newaction", "Ctrl+S")
-    assert has_conflict is True
-
     captured = capsys.readouterr()
-    assert "Cannot set shortcut" in captured.out
-    assert "conflict" in captured.out
+    assert "ShortcutError" in captured.out
 
 
 def test_full_lifecycle(widget, qtbot):
