@@ -416,7 +416,7 @@ class ShortcutManager:
         """
         Print all declared shortcuts to the console in a formatted table.
         """
-        defs = list(self.shortcut_manager.iter_definitions())
+        defs = list(self.iter_definitions())
         context_w = max(len(scd.context) for scd in defs) + 2
         name_w = max(len(scd.name) for scd in defs) + 2
 
