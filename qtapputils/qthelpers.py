@@ -296,19 +296,25 @@ def format_tooltip(text: str, tip: str, shortcuts: list[str] | str):
     as a widget's tooltip.
     """
     keystr = get_shortcuts_native_text(shortcuts)
+
     # We need to replace the unicode characters < and > by their HTML
     # code to avoid problem with the HTML formatting of the tooltip.
     keystr = keystr.replace('<', '&#60;').replace('>', '&#62;')
+
     ttip = ""
     if text or keystr:
         ttip += "<p style='white-space:pre'><b>"
         if text:
-            ttip += "{}".format(text) + (" " if keystr else "")
+            ttip += f"{text}" + (" " if keystr else "")
         if keystr:
-            ttip += "({})".format(keystr)
+            ttip += "({sc_str})"
         ttip += "</b></p>"
     if tip:
-        ttip += "<p>{}</p>".format(tip or '')
+        ttip += f"<p>{tip or ''}</p>"
+
+    if keystr:
+        ttip = ttip.format(sc_str=keystr)
+
     return ttip
 
 
