@@ -242,12 +242,6 @@ class ShortcutManager:
         if self.check_conflicts(context, name, key_sequence):
             key_sequence = ''
 
-        qkey_sequence = QKeySequence(key_sequence)
-        if qkey_sequence.isEmpty() and key_sequence not in (None, ''):
-            raise ValueError(
-                f"Key sequence '{key_sequence}' is not valid."
-                )
-
         definition = ShortcutDefinition(
             context=context,
             name=name,
