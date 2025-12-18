@@ -378,6 +378,62 @@ def test_bind_shortcut(widget):
             )
 
 
+def test_shortcut_controls(widget, qtbot):
+    manager = ShortcutManager()
+
+    # Bind a shortcut, but don't activate it.
+    manager.declare_shortcut(
+        context='file', name='save', default_key_sequence='Ctrl+S'
+        )
+    shortcut_item = manager.bind_shortcut(
+        context='file', name='save',
+        callback=Mock(), parent=widget, activate=False
+        )
+
+    assert isinstance(shortcut_item, ShortcutItem)
+    assert shortcut_item.shortcut is None
+    assert shortcut_item.enabled is False
+
+    qtbot.keyPress(widget, Qt.Key_S, modifier=Qt.ControlModifier)
+    shortcut_item.callback.call_count == 0
+
+    # Activate the shortcut.
+    manager.activate_shortcut('file', 'save')
+
+    assert shortcut_item.shortcut is not None
+    assert shortcut_item.enabled is True
+
+    qtbot.keyPress(widget, Qt.Key_S, modifier=Qt.ControlModifier)
+    shortcut_item.callback.call_count == 1
+
+    # Disable the shortcut.
+    manager.enable_shortcut('file', 'save', enabled=False)
+
+    assert shortcut_item.shortcut is not None
+    assert shortcut_item.enabled is False
+
+    qtbot.keyPress(widget, Qt.Key_S, modifier=Qt.ControlModifier)
+    shortcut_item.callback.call_count == 1
+
+    # Enable the shortcut.
+    manager.enable_shortcut('file', 'save', enabled=True)
+
+    assert shortcut_item.shortcut is not None
+    assert shortcut_item.enabled is True
+
+    qtbot.keyPress(widget, Qt.Key_S, modifier=Qt.ControlModifier)
+    shortcut_item.callback.call_count == 2
+
+    # Deactivate the shortcut.
+    manager.deactivate_shortcut('file', 'save')
+
+    assert shortcut_item.shortcut is None
+    assert shortcut_item.enabled is False
+
+    qtbot.keyPress(widget, Qt.Key_S, modifier=Qt.ControlModifier)
+    shortcut_item.callback.call_count == 2
+
+
 def test_set_shortcut(widget, capsys):
     manager = ShortcutManager()
 
