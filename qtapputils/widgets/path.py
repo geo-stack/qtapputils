@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright © QtAppUtils Project Contributors
-# https://github.com/jnsebgosselin/qtapputils
+# https://github.com/geo-stack/qtapputils
 #
 # This file is part of QtAppUtils.
 # Licensed under the terms of the MIT License.
