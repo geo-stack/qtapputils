@@ -7,27 +7,22 @@
 # Licensed under the terms of the GNU General Public License.
 # -----------------------------------------------------------------------------
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
 
 # ---- Standard library imports
 import os
-import os.path as osp
 import sys
 import datetime
 import tempfile
+from pathlib import Path
 
 
 # ---- Third party imports
 from qtapputils.icons import get_standard_icon, get_standard_iconsize
-from qtpy.QtCore import Qt
-from qtpy.QtGui import QIcon
+from qtpy.QtCore import Qt, QUrl
+from qtpy.QtGui import QIcon, QDesktopServices
 from qtpy.QtWidgets import (
     QApplication, QDialog, QDialogButtonBox, QGridLayout, QLabel, QPushButton,
     QTextEdit, QWidget)
-
-
-# ---- Local imports
-from hydrogeolab.config.main import TEMP_DIR
 
 
 class ExceptDialog(QDialog):
@@ -38,7 +33,8 @@ class ExceptDialog(QDialog):
 
     def __init__(self, appname: str, appver: str, system_info: str = None,
                  icon: QIcon = None, issue_tracker: str = None,
-                 issue_email: str = None, parent: QWidget = None):
+                 issue_email: str = None, parent: QWidget = None,
+                 temp_dir: str | Path = None):
         super().__init__(parent)
         self.setWindowTitle(f"{appname} Internal Error")
         self.setWindowFlags(
@@ -46,6 +42,13 @@ class ExceptDialog(QDialog):
         if icon is not None:
             self.setWindowIcon(icon)
 
+        self.temp_dir = None
+        if temp_dir is not None:
+            temp_dir = Path(temp_dir)
+            if temp_dir.is_dir() and os.access(temp_dir, os.W_OK):
+                self.temp_dir = temp_dir
+
+        self.temp_dir = temp_dir
         self.log_msg = None
         self.detailed_log = None
 
@@ -176,11 +179,14 @@ class ExceptDialog(QDialog):
         chosen by the OS.
         """
         name = '{}Log_{}.txt'.format(self.appname, self.log_datetime)
-        temp_path = tempfile.mkdtemp(dir=TEMP_DIR)
-        temp_filename = osp.join(temp_path, name)
-        with open(temp_filename, 'w') as txtfile:
+
+        temp_path = Path(tempfile.mkdtemp(dir=self.temp_dir))
+        temp_filename = temp_path / name
+        with open(temp_filename, 'w', encoding='utf-8') as txtfile:
             txtfile.write(self.detailed_log)
-        os.startfile(temp_filename)
+
+        # Cross-platform file opening (Windows, macOS, Linux) via Qt
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(temp_filename)))
 
     def copy(self):
         """
