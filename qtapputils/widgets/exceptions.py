@@ -47,6 +47,9 @@ class ExceptDialog(QDialog):
             temp_dir = Path(temp_dir)
             if temp_dir.is_dir() and os.access(temp_dir, os.W_OK):
                 self.temp_dir = temp_dir
+            else:
+                print(f"Provided temp_dir {temp_dir} is not a valid or "
+                      "writable directory. Falling back to system default.")
 
         self.temp_dir = temp_dir
         self.log_msg = None
