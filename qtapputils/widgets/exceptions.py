@@ -51,7 +51,6 @@ class ExceptDialog(QDialog):
                 print(f"Provided temp_dir {temp_dir} is not a valid or "
                       "writable directory. Falling back to system default.")
 
-        self.temp_dir = temp_dir
         self.log_msg = None
         self.detailed_log = None
 
