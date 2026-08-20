@@ -41,16 +41,20 @@ class StandardStreamEmitter(QObject):
     """
     sig_new_text = Signal(str)
 
+    def __init__(self, stream='stdout'):
+        super().__init__()
+        self._stream = sys.__stderr__ if stream == 'stderr' else sys.__stdout__
+
     def write(self, text):
         try:
-            sys.__stdout__.write(text)
+            self._stream.write(text)
         except Exception:
             pass
         self.sig_new_text.emit(str(text))
 
     def flush(self):
         try:
-            sys.__stdout__.flush()
+            self._stream.flush()
         except Exception:
             pass
 
@@ -82,10 +86,10 @@ class SysCaptureManager(QObject):
         self.except_hook.sig_except_caught.connect(self._handle_except)
 
         # Setup the standard stream emitter.
-        self.stdout_emitter = StandardStreamEmitter()
+        self.stdout_emitter = StandardStreamEmitter('stdout')
         self.stdout_emitter.sig_new_text.connect(self.__handle_stdout)
 
-        self.stderr_emitter = StandardStreamEmitter()
+        self.stderr_emitter = StandardStreamEmitter('stderr')
         self.stderr_emitter.sig_new_text.connect(self.handle_stderr)
 
         if start_capture:
