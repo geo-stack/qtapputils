@@ -48,6 +48,12 @@ class StandardStreamEmitter(QObject):
             pass
         self.sig_new_text.emit(str(text))
 
+    def flush(self):
+        try:
+            sys.__stdout__.flush()
+        except Exception:
+            pass
+
 
 class SysCaptureManager(QObject):
     """
